@@ -227,7 +227,7 @@ module montgomery(
                countEn          <= 1'b0;
                showFluffyPonies <= extraState;
               end 
-          else if(state == 4'd7)       
+          else if(state == 4'd7)     // carry_enable SHOULD BE SET TO 0 ON THE FIRST STATE
               begin
                regM_en          <= 1'b0;
                regB_en          <= 1'b0;
@@ -236,7 +236,7 @@ module montgomery(
                startAdd         <= 1'b1; //our resetn
                subtract         <= 1'b0;
                mux_sel          <= 2'd0; //select between M and B
-               enableC          <= 1'b1; //shouldn't C be off?
+               enableC          <= 1'b0; //shouldn't C be off?
                shiftAdd         <= 1'b0;
                reset            <= 1'b0; //counter reset
                countEn          <= 1'b0;

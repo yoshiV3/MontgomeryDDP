@@ -8,19 +8,17 @@ module mpadder(
     input  wire         shift,
     input  wire         enableC,
     input  wire [3:0]   showFluffyPonies,
-    input  wire         enableCarry,
     output wire [513:0] trueResult,
-    output wire         cZero,
     output wire [513:0] debugResult,
+    output wire         cZero,
     output wire         carry // better name would be subtract_finished
     //output wire         done
      );
      
 
-    assign debugResult = result;
      
      
-     wire [513:0] result;
+     wire [514:0] result;
      
      
      wire [513:0] addInput;
@@ -40,7 +38,7 @@ module mpadder(
          else if (subtract)  c_regb <= result[513:0];
      end
      
-     assign trueResult = c_regb[511:0]; //we store the to be subtracted value in c_regb, and get our result from there once done    
+     
      
      wire [513:0] C1c; //514* 2, + the last one which is a a shiftSave
      wire [514:0] C2c; 
@@ -138,19 +136,17 @@ module mpadder(
      assign result_d4 = tempRes[102:0];
      assign result_d5 = tempRes[101:0];       
        
-     assign result = {2'b0, result_regFive, result_regFour, result_regThree, result_regTwo, result_regOne};
+     assign result = {result_regFive, result_regFour, result_regThree, result_regTwo, result_regOne};
       
      
      // 103 bit adder
      reg  [1:0] carry_in;
-     wire       carry_enable;
      always @(posedge clk)
      begin
          if(~resetn)          carry_in <= 2'd0;
-         else if(carry_enable) carry_in <= tempRes[104:103];
+         else if(showFluffyPonies[3] == 1'b0) carry_in <= tempRes[104:103];
      end
      
-     assign carry_enable = enableCarry;
      wire         carryIn;
      assign carryIn =  (showFluffyPonies == 4'b0 && ~subtract)? C2c[0]:1'b0;  
      assign tempRes = operandAShift + operandBShift + carry_in + carryIn;
@@ -227,9 +223,8 @@ module mpadder(
     wire subtract_finished;
     
     assign subract_finished = carry;
-    
-    reg [1:0] upperBitsSubtract;
     wire overflow;
+    reg [1:0] upperBitsSubtract;
     always @(posedge clk)
     begin
        if (~resetn)        upperBitsSubtract<=2'b0;
@@ -244,6 +239,7 @@ module mpadder(
     assign subtract_finished = (upperBitsSubtract == 2'b0 && overflow);
     
     
+     assign trueResult = c_regb[511:0]; //we store the to be subtracted value in c_regb, and get our result from there once done   
 
     
 endmodule
