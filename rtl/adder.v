@@ -229,14 +229,21 @@ module mpadder(
     begin
        if (~resetn)        upperBitsSubtract<=2'b0;
        else if (showFluffyPonies == 4'd4 && ~subtract)  upperBitsSubtract <= tempRes[101:100]; //maybe carry_in register could be used
-       else if (overflow)                  upperBitsSubtract <= upperBitsSubtract - 1; //actually no overflow
+       else if (overflow)                  upperBitsSubtract <= upperBitsSubtract_D - 1;
+        //actually no overflow
     end
     
     
+    reg [1:0] upperBitsSubtract_D;
+    always @(posedge clk)
+    begin
+        if (~resetn)     upperBitsSubtract_D<=2'b0;
+        else upperBitsSubtract_D <= upperBitsSubtract;
+    end    
     
     assign overflow = (~tempRes[100] && showFluffyPonies == 4'd4 && subtract);//actually no overflow
     
-    assign subtract_finished = (upperBitsSubtract == 2'b0 && overflow);
+    assign subtract_finished = (upperBitsSubtract_D == 2'b0 && overflow);
     
     
      assign trueResult = c_regb[511:0]; //we store the to be subtracted value in c_regb, and get our result from there once done   

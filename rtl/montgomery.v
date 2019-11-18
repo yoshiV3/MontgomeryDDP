@@ -45,19 +45,17 @@ module montgomery(
     reg          regA_sh;
     wire [511:0] regA_D;
     reg          regA_Q;
-    reg[511:0]   regA_save;
     reg[511:0]   regA_shift;
     always @(posedge clk)
     begin
-        if(~ resetn)          regA_Q <= 514'd0;
+        if(~ resetn)          regA_Q <= 512'd0;
         else if (regA_en) 
                   begin
-                  regA_save <= regA_D;
                   regA_shift <= regA_D;
                   end
          else if (regA_sh)
                   begin
-                  regA_shift <= {1'b0,regA_save[511:1]};        
+                  regA_shift <= {1'b0,regA_shift[511:1]};        
                   regA_Q <= regA_shift[0];
                   end
      end
@@ -95,7 +93,13 @@ module montgomery(
         else if  (mux_sel == 2'b1)  muxOut = {2'b0,regM_Q};
         else                        muxOut = 514'b0;
     end
-    assign in_AddA = muxOut; 
+    
+    reg[513:0]  muxOutSub; 
+    always @(*)   
+    begin
+        assign muxOutSub = (subtract==1'b1)? ~muxOut+1:muxOut;
+    end    
+    assign in_AddA = muxOutSub; 
     
     reg [3:0] state, nextstate;
     reg [3:0] extraState;
@@ -125,7 +129,7 @@ module montgomery(
      counter_up <= counter_up + 10'd1;
     end
     
-    reg [511:0] debug;
+    //reg [511:0] debug;
     // This always block was added to ensure the tool doesn't trim away the montgomery module.
     // Feel free to remove [511:1this block
     always @(*)
@@ -145,9 +149,9 @@ module montgomery(
                shiftAdd    <= 1'b0;
                reset       <= 1'b1;
                countEn     <= 1'b0;
-               extraState  <= 4'd8;
+               extraStateNext <= 4'd8;
                showFluffyPonies <= 4'd8;
-               debug <= 0;
+               
               end
         // firsrt state
           else if(state == 4'd1)       
@@ -158,7 +162,7 @@ module montgomery(
                regA_sh     <= 1'b0;
                startAdd    <= 1'b0;
                subtract    <= 1'b0;
-               mux_sel     <= 2'b0;
+               mux_sel     <= 2'b10;
                enableC     <= 1'b0;
                shiftAdd    <= 1'b0;
                reset       <= 1'b0;
@@ -274,19 +278,19 @@ module montgomery(
                  nextstate <= 4'd4;           
         end
         else if (state == 4'd2) begin
-            if(regA_Q || regB_Q[0])
+            if(regB_Q[0])
                  if(c_zero)
                     nextstate <= 4'd3;
                  else
                     nextstate <= 4'd4;  
             else
-                 if(c_zero^1'b1)
+                 if(c_zero == 1'b1)
                     nextstate <= 4'd3;
                  else
                     nextstate <= 4'd4;
         end
         else if (state == 4'd3 || state == 4'd4) begin
-             if (counter_up[9] == 1)
+             if (counter_up[1:0] == 2'd3 ) //switch 9
              begin
                 nextstate <= 4'd7; // Go to the end
                 extraStateNext <= 4'd0;
@@ -303,21 +307,21 @@ module montgomery(
 
             
             else if (state == 4'd7) begin
-               debug <= 512'hdeadbeef;
+               //debug <= 512'hdeadbeef;
                  if(extraState == 4'd0)  extraStateNext<= 4'd1;
                else if( extraState == 4'd1)   extraStateNext<= 4'd2;
                else if( extraState == 4'd2)   extraStateNext<= 4'd3;
                else if( extraState == 4'd3)   extraStateNext<= 4'd4;
                else if( extraState == 4'd4)
                    begin 
-                       nextstate  <= 4'd5;
+                       nextstate  <= 4'd5;  //CHANGE TO FIVE
                        extraStateNext <= 4'd0;
                   end
              end
             
          else if (state == 4'd5)   begin
 
-                if (carryAdd == 1) nextstate <= 4'd8; //carryAdd is our subtract finished What does this line do????
+                if (carryAdd == 1'b1) nextstate <= 4'd8; //carryAdd is our subtract finished What does this line do????
                else if(extraState == 4'd0)  extraStateNext<= 4'd1;
                else if( extraState == 4'd1)   extraStateNext<= 4'd2;
                else if( extraState == 4'd2)   extraStateNext<= 4'd3;
