@@ -203,12 +203,12 @@ module montgomery(
                regB_en          <= 1'b0;
                regA_en          <= 1'b0;
                regA_sh          <= 1'b0;
-               startAdd         <= 1'b1;
+               startAdd         <= 1'b1;//our resetn
                subtract         <= 1'b1;
-               mux_sel          <= 2'd1;//select M
+               mux_sel          <= 2'd1;//select regM_Q
                enableC          <= 1'b1;
                shiftAdd         <= 1'b0;
-               reset            <= 1'b0;
+               reset            <= 1'b0; //counter reset
                countEn          <= 1'b0;
                showFluffyPonies <= 4'd8;
               end 
@@ -236,9 +236,9 @@ module montgomery(
                startAdd         <= 1'b1; //our resetn
                subtract         <= 1'b0;
                mux_sel          <= 2'd0; //select between M and B
-               enableC          <= 1'b1;
+               enableC          <= 1'b1; //shouldn't C be off?
                shiftAdd         <= 1'b0;
-               reset            <= 1'b0;
+               reset            <= 1'b0; //counter reset
                countEn          <= 1'b0;
                showFluffyPonies <= extraState;
               end    
@@ -273,7 +273,7 @@ module montgomery(
                  nextstate <= 4'd2;
              else
                  nextstate <= 4'd4;           
-        endmux_sel
+        end
         else if (state == 4'd2) begin
             if(regA_Q || regB_Q[0])
                  if(c_zero)
@@ -315,7 +315,7 @@ module montgomery(
             
          else if (state == 4'd5)
             begin
-                if (carryAdd == 1) nextstate <= 4'd6;
+                if (carryAdd == 1) nextstate <= 4'd6; //carryAdd is our subtract finished
                 if(extraState == 4'd0)  extraState<= 4'd1;
                else if( extraState == 4'd1)   extraState<= 4'd2;
                else if( extraState == 4'd2)   extraState<= 4'd3;
