@@ -9,17 +9,18 @@ module mpadder(
     input  wire         enableC,
     input  wire [3:0]   showFluffyPonies,
     input  wire         enableCarry,
-    output wire [511:0] trueResult,
+    output wire [513:0] trueResult,
     output wire         cZero,
+    output wire [513:0] debugResult,
     output wire         carry // better name would be subtract_finished
     //output wire         done
      );
      
-     assign trueResult = c_regb[511:0]; //we store the to be subtracted value in c_regb, and get our result from there once done   
 
+    assign debugResult = result;
      
      
-     wire [514:0] result;
+     wire [513:0] result;
      
      
      wire [513:0] addInput;
@@ -39,7 +40,7 @@ module mpadder(
          else if (subtract)  c_regb <= result[513:0];
      end
      
-     
+     assign trueResult = c_regb[511:0]; //we store the to be subtracted value in c_regb, and get our result from there once done    
      
      wire [513:0] C1c; //514* 2, + the last one which is a a shiftSave
      wire [514:0] C2c; 
@@ -137,7 +138,7 @@ module mpadder(
      assign result_d4 = tempRes[102:0];
      assign result_d5 = tempRes[101:0];       
        
-     assign result = {result_regFive, result_regFour, result_regThree, result_regTwo, result_regOne};
+     assign result = {2'b0, result_regFive, result_regFour, result_regThree, result_regTwo, result_regOne};
       
      
      // 103 bit adder
@@ -228,6 +229,7 @@ module mpadder(
     assign subract_finished = carry;
     
     reg [1:0] upperBitsSubtract;
+    wire overflow;
     always @(posedge clk)
     begin
        if (~resetn)        upperBitsSubtract<=2'b0;
@@ -235,7 +237,7 @@ module mpadder(
        else if (overflow)                  upperBitsSubtract <= upperBitsSubtract - 1;
     end
     
-    wire overflow;
+    
     
     assign overflow = (tempRes[100] && showFluffyPonies == 4'd4);
     

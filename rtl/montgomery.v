@@ -31,7 +31,7 @@ module montgomery(
          .subtract (subtract),
          .in_a     (in_AddA   ),
          .c_zero   (c_zero),
-         .trueResult   (resultAdd  ),
+         .trueResult   ({2'b0, resultAdd}  ),
          .enableC  (enableC),
          .showFluffyPonies (showFluffyPonies),
          .done     (doneAdd    ),
