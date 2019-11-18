@@ -35,7 +35,7 @@ module mpadder(
          if(~resetn)         c_regb <= 514'd0;
          else if (c_shift)   c_regb <= {1'b0,c_db[513:1]};
          else if (c_enable)  c_regb <= c_db;
-         else if (subtract)  c_regb <= result[513:0];
+         else if (subtract)  c_regb <= {2'b0, result};
      end
      
      
@@ -234,7 +234,7 @@ module mpadder(
     
     
     
-    assign overflow = (~tempRes[100] && showFluffyPonies == 4'd4);//actually no overflow
+    assign overflow = (~tempRes[100] && showFluffyPonies == 4'd4 && subtract);//actually no overflow
     
     assign subtract_finished = (upperBitsSubtract == 2'b0 && overflow);
     
