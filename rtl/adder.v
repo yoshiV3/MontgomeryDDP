@@ -11,7 +11,8 @@ module mpadder(
     output wire [513:0] trueResult,
     output wire [513:0] debugResult,
     output wire         cZero,
-    output wire         carry // better name would be subtract_finished
+    output wire         carry, // better name would be subtract_finished
+    output wire         cOne
     //output wire         done
      );
      
@@ -225,6 +226,8 @@ module mpadder(
     assign carry = subtract_finished;
     wire overflow;
     reg [1:0] upperBitsSubtract;
+    reg [1:0] upperBitsSubtract_D;
+
     always @(posedge clk)
     begin
        if (~resetn)        upperBitsSubtract<=2'b0;
@@ -234,7 +237,6 @@ module mpadder(
     end
     
     
-    reg [1:0] upperBitsSubtract_D;
     always @(posedge clk)
     begin
         if (~resetn)     upperBitsSubtract_D<=2'b0;
@@ -249,6 +251,7 @@ module mpadder(
      assign trueResult = c_regb[511:0]; //we store the to be subtracted value in c_regb, and get our result from there once done   
 
     assign debugResult = {upperBitsSubtract , result};
+    assign cOne = C2c[1]^C2b[1];
     
 endmodule
 module add3(

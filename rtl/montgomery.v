@@ -19,6 +19,7 @@ module montgomery(
     wire doneAdd;
     wire[513:0] resultAdd;
     wire c_zero;
+    wire c_one;
     reg shiftAdd;
     reg enableC;
     wire carryAdd;
@@ -32,6 +33,7 @@ module montgomery(
          .subtract (subtract),
          .in_a     (in_AddA   ),
          .cZero   (c_zero),
+         .cOne    (c_one),
          .trueResult   (resultAdd),
          .debugResult  (debugResult),
          .enableC  (enableC),
@@ -214,6 +216,21 @@ module montgomery(
                countEn     <= 1'b1;
                showFluffyPonies <= 4'd8;
               end 
+          else if(state == 4'd6)       
+                  begin
+                   regM_en     <= 1'b0;
+                   regB_en     <= 1'b0;
+                   regA_en     <= 1'b0;
+                   regA_sh     <= 1'b0;
+                   startAdd    <= 1'b1;
+                   subtract    <= 1'b0;
+                   mux_sel     <= 2'd2;
+                   enableC     <= 1'b1;
+                   shiftAdd    <= 1'b0;
+                   reset       <= 1'b0;
+                   countEn     <= 1'b0;
+                   showFluffyPonies <= 4'd8;
+                  end 
           else if(state == 4'd5)       
               begin
                regM_en          <= 1'b0;
@@ -289,23 +306,35 @@ module montgomery(
                  else
                     nextstate <= 4'd4;
         end
-        else if (state == 4'd3 || state == 4'd4) begin
+        else if (state == 4'd3) begin
              if (counter_up[1:0] == 2'd3 ) //switch 9
              begin
                 nextstate <= 4'd7; // Go to the end
                 extraStateNext <= 4'd0;
              end
-             else if(regA_Q) nextstate <= 4'd2;
+             else if(regA_shift[1]) nextstate <= 4'd2;
+             else nextstate <= 4'd6;
+
+        end
+        else if (state == 4'd6) begin
+            if (c_zero) nextstate <= 4'd3;
+            else        nextstate <= 4'd4;
+        end
+        else if (state == 4'd4) begin
+             if (counter_up[1:0] == 20'd9 ) //switch 9
+             begin
+                nextstate <= 4'd7; // Go to the end
+                extraStateNext <= 4'd0;
+             end
+             else if(regA_shift[1]) nextstate <= 4'd2;
              else
              begin
-                 if(c_zero)
+                 if(c_one)
                     nextstate <= 4'd3;
                  else
                     nextstate <= 4'd4;   
              end
-        end
-
-            
+        end            
             else if (state == 4'd7) begin
                //debug <= 512'hdeadbeef;
                  if(extraState == 4'd0)  extraStateNext<= 4'd1;
