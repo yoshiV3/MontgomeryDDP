@@ -16,7 +16,7 @@ module mpadder(
      );
      
 
-     assign debugResult = {upperBitsSubtract ,result};
+     
      
      wire [511:0] result;
      
@@ -241,6 +241,7 @@ module mpadder(
     
      assign trueResult = c_regb[511:0]; //we store the to be subtracted value in c_regb, and get our result from there once done   
 
+    assign debugResult = {upperBitsSubtract ,result};
     
 endmodule
 module add3(
