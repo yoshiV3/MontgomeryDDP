@@ -36,7 +36,7 @@ module mpadder(
          if(~resetn)         c_regb <= 514'd0;
          else if (c_shift)   c_regb <= {1'b0,c_db[513:1]};
          else if (c_enable)  c_regb <= c_db;
-         else if (subtract)  c_regb <= {2'b0, result};
+         else if (subtract && showFluffyPonies == 4'b0)  c_regb <= {2'b0, result};
      end
      
      

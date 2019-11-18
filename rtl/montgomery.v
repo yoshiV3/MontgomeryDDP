@@ -307,7 +307,7 @@ module montgomery(
                     nextstate <= 4'd4;
         end
         else if (state == 4'd3) begin
-             if (counter_up[3:0] == 4'b1010 ) //switch 9
+             if (counter_up == 10'd511) //switch 9
              begin
                 nextstate <= 4'd7; // Go to the end
                 extraStateNext <= 4'd0;
@@ -321,7 +321,7 @@ module montgomery(
             else        nextstate <= 4'd4;
         end
         else if (state == 4'd4) begin
-             if (counter_up[3:0] == 4'b1010 ) //switch 9
+             if (counter_up == 10'd511) //switch 9
              begin
                 nextstate <= 4'd7; // Go to the end
                 extraStateNext <= 4'd0;
