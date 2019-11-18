@@ -17,11 +17,12 @@ module montgomery(
     wire[513:0] in_AddA;
     reg [3:0] showFluffyPonies;
     wire doneAdd;
-    wire[511:0] resultAdd;
+    wire[513:0] resultAdd;
     wire c_zero;
     reg shiftAdd;
     reg enableC;
     wire carryAdd;
+    wire [513:0] debugResult;
     // Student tasks:
      // 1. Instantiate an Adder
      mpadder dut (
@@ -30,11 +31,11 @@ module montgomery(
          .resetn   (startAdd ),
          .subtract (subtract),
          .in_a     (in_AddA   ),
-         .c_zero   (c_zero),
-         .trueResult   ({2'b0, resultAdd}  ),
+         .cZero   (c_zero),
+         .trueResult   (resultAdd),
+         .debugResult  (debugResult),
          .enableC  (enableC),
          .showFluffyPonies (showFluffyPonies),
-         .done     (doneAdd    ),
          .carry    (carryAdd ));
     // 2. Use the Adder to implement the Montgomery multiplier in hardware.
     // 3. Use tb_montgomery.v to simulate your design.
@@ -134,6 +135,7 @@ module montgomery(
                shiftAdd    <= 1'b0;
                reset       <= 1'b1;
                countEn     <= 1'b0;
+               extraState  <= 4'd8;
                showFluffyPonies <= 4'd8;
               end
         // firsrt state
@@ -210,7 +212,7 @@ module montgomery(
                shiftAdd         <= 1'b0;
                reset            <= 1'b0; //counter reset
                countEn          <= 1'b0;
-               showFluffyPonies <= 4'd8;
+               showFluffyPonies <= extraState;
               end 
           else if(state == 4'd6)       
               begin
@@ -227,7 +229,7 @@ module montgomery(
                countEn          <= 1'b0;
                showFluffyPonies <= extraState;
               end 
-          else if(state == 4'd7)     // carry_enable SHOULD BE SET TO 0 ON THE FIRST STATE
+          else if(state == 4'd7)       
               begin
                regM_en          <= 1'b0;
                regB_en          <= 1'b0;
@@ -236,7 +238,7 @@ module montgomery(
                startAdd         <= 1'b1; //our resetn
                subtract         <= 1'b0;
                mux_sel          <= 2'd0; //select between M and B
-               enableC          <= 1'b0; //shouldn't C be off?
+               enableC          <= 1'b1; //shouldn't C be off?
                shiftAdd         <= 1'b0;
                reset            <= 1'b0; //counter reset
                countEn          <= 1'b0;
@@ -315,14 +317,14 @@ module montgomery(
             
          else if (state == 4'd5)
             begin
-                if (carryAdd == 1) nextstate <= 4'd6; //carryAdd is our subtract finished
-                if(extraState == 4'd0)  extraState<= 4'd1;
+                if (carryAdd == 1) nextstate <= 4'd8; //carryAdd is our subtract finished What does this line do????
+               else if(extraState == 4'd0)  extraState<= 4'd1;
                else if( extraState == 4'd1)   extraState<= 4'd2;
                else if( extraState == 4'd2)   extraState<= 4'd3;
                else if( extraState == 4'd3)   extraState<= 4'd4;
                else if( extraState == 4'd4)
                begin 
-                   nextstate  <= 4'd8;
+                   nextstate  <= 4'd5;
                    extraState <= 4'd0;
                end
             end
@@ -332,7 +334,7 @@ module montgomery(
 
     else if (state == 3'd6) nextstate <= 3'd0; 
    end
-    assign result = resultAdd;
+    assign result = resultAdd[511:0];
     
     assign done = (state ==  4'd8) ? 1:0;
 endmodule
