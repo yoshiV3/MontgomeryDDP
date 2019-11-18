@@ -13,7 +13,7 @@ module tb_adder();
     reg           subtract;
     reg           shift;
     reg           enableC;
-    wire [514:0]  result;
+    wire [513:0]  result;
     wire          zeroC;
     reg          carry_en;
     reg [513:0]  expected;
@@ -30,7 +30,8 @@ module tb_adder();
         .in_a     (in_a    ),
         .shift    (shift    ),
         .enableC  (enableC),
-        .trueResult   (result  ),
+        //.trueResult   (result  ),
+        .debugResult (result),
         .showFluffyPonies (return),
         .cZero    (zeroC)
     );
