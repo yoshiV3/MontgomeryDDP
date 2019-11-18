@@ -107,9 +107,9 @@ module tb_adder();
     // Check if 1+1=2
     #`CLK_PERIOD;
     assign number1 = 514'b11011001110110100111101111101010000110100011000111011000101010111110001010100010011110110100111010000101010111000101110001011100010100001110110100000000110001001000001110001000111010101001101100001111101101111100001000000100110000101100000100101101001110011001011100010101011110100110111111001000111001001011101111100100001100101100010000001101001101011111001001110001011000001001001011101011101000000010111000110111100110000001011111010110001101101010000101000100010101010001110111110100100110101101111000110111;
-    assign expected = 6 + number1 + number1+number1+1; //
+    assign expected = 6 + number1 + number1+number1; //
     assign expected = {1'b0,expected[513:1]};
-    assign carry_en = 1'b0;
+    assign expected = expected -1;
     perform_add(514'd3);
     perform_add(514'd3);
     perform_add(514'd0);
@@ -133,20 +133,23 @@ module tb_adder();
     #`CLK_PERIOD
     return  <= 4'd4;
     #`CLK_PERIOD
-    return  <= 4'd8;
+    
+    subtract <= 1'b1;
+    in_a <= 512'hffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+    return  <= 4'd0;
     #`CLK_PERIOD
-    
-    
-//    return  <= 4'd0;
-//    #`CLK_PERIOD
-//    return  <= 4'd1;
-//    #`CLK_PERIOD
-//    return  <= 4'd2;
-//    #`CLK_PERIOD
-//    return  <= 4'd3;
-//    #`CLK_PERIOD
-//    return  <= 4'd4;
-//    #`CLK_PERIOD
+    return  <= 4'd1;
+    #`CLK_PERIOD
+    return  <= 4'd2;
+    #`CLK_PERIOD
+    return  <= 4'd3;
+    #`CLK_PERIOD
+    return  <= 4'd4;
+    #`CLK_PERIOD
+    return  <= 4'd8;
+    subtract <= 1'b0;
+    #`CLK_PERIOD
+#`CLK_PERIOD
     result_ok = (expected==result); // #7 means wait 7 clock cycles
     assign carry_en = 1'b0;
     $display("result calculated=%x", result);
@@ -154,7 +157,7 @@ module tb_adder();
     $display("error            =%x", expected-result);
     #`CLK_PERIOD;   
     
-
+#`CLK_PERIOD
     $finish;
 
     end
