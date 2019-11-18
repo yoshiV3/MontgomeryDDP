@@ -229,12 +229,12 @@ module mpadder(
     begin
        if (~resetn)        upperBitsSubtract<=2'b0;
        else if (showFluffyPonies == 4'd4 && ~subtract)  upperBitsSubtract <= tempRes[101:100]; //maybe carry_in register could be used
-       else if (overflow)                  upperBitsSubtract <= upperBitsSubtract - 1;
+       else if (overflow)                  upperBitsSubtract <= upperBitsSubtract - 1; //actually no overflow
     end
     
     
     
-    assign overflow = (tempRes[100] && showFluffyPonies == 4'd4);
+    assign overflow = (~tempRes[100] && showFluffyPonies == 4'd4);//actually no overflow
     
     assign subtract_finished = (upperBitsSubtract == 2'b0 && overflow);
     
