@@ -99,10 +99,19 @@ module montgomery(
     
     reg [3:0] state, nextstate;
     reg [3:0] extraState;
+    reg [3:0] extraStateNext;
     always @(posedge clk)
     begin
-        if(~ resetn)        state <= 4'd0;
-        else              state <= nextstate;
+        if(~ resetn)
+        begin        
+        state <= 4'd0;
+        extraState <= 4'd0;
+        end
+        else
+        begin              
+        state <= nextstate;
+        extraState <= extraStateNext;
+        end
     end  
     
     reg [9:0] counter_up;
@@ -116,6 +125,7 @@ module montgomery(
      counter_up <= counter_up + 10'd1;
     end
     
+    reg [511:0] debug;
     // This always block was added to ensure the tool doesn't trim away the montgomery module.
     // Feel free to remove [511:1this block
     always @(*)
@@ -137,6 +147,7 @@ module montgomery(
                countEn     <= 1'b0;
                extraState  <= 4'd8;
                showFluffyPonies <= 4'd8;
+               debug <= 0;
               end
         // firsrt state
           else if(state == 4'd1)       
@@ -214,21 +225,6 @@ module montgomery(
                countEn          <= 1'b0;
                showFluffyPonies <= extraState;
               end 
-          else if(state == 4'd6)       
-              begin
-               regM_en          <= 1'b1;
-               regB_en          <= 1'b1;
-               regA_en          <= 1'b1;
-               regA_sh          <= 1'b0;
-               startAdd         <= 1'b1;
-               subtract         <= 1'b0;
-               mux_sel          <= 2'd1;
-               enableC          <= 1'b1;
-               shiftAdd         <= 1'b0;
-               reset            <= 1'b0;
-               countEn          <= 1'b0;
-               showFluffyPonies <= extraState;
-              end 
           else if(state == 4'd7)       
               begin
                regM_en          <= 1'b0;
@@ -238,13 +234,13 @@ module montgomery(
                startAdd         <= 1'b1; //our resetn
                subtract         <= 1'b0;
                mux_sel          <= 2'd0; //select between M and B
-               enableC          <= 1'b1; //shouldn't C be off?
+               enableC          <= 1'b0; //shouldn't C be off?
                shiftAdd         <= 1'b0;
                reset            <= 1'b0; //counter reset
                countEn          <= 1'b0;
                showFluffyPonies <= extraState;
               end    
-        else 
+         else 
             begin
              regM_en          <= 1'b0;
              regB_en          <= 1'b0;
@@ -261,6 +257,7 @@ module montgomery(
             end 
     end
     //next state logic
+
     always @(*)
     begin
         if(state == 4'd0) begin
@@ -289,52 +286,52 @@ module montgomery(
                     nextstate <= 4'd4;
         end
         else if (state == 4'd3 || state == 4'd4) begin
-             if (counter_up[9] == 1) nextstate <= 3'd7; // Go to the end
-             else if(regA_Q)
-                 nextstate <= 4'd2;
+             if (counter_up[9] == 1)
+             begin
+                nextstate <= 4'd7; // Go to the end
+                extraStateNext <= 4'd0;
+             end
+             else if(regA_Q) nextstate <= 4'd2;
              else
+             begin
                  if(c_zero)
                     nextstate <= 4'd3;
                  else
                     nextstate <= 4'd4;   
-            end
+             end
+        end
+
             
             else if (state == 4'd7) begin
-               if(extraState == 4'd0)  extraState<= 4'd1;
-               else if( extraState == 4'd1)   extraState<= 4'd2;
-               else if( extraState == 4'd2)   extraState<= 4'd3;
-               else if( extraState == 4'd3)   extraState<= 4'd4;
+               debug <= 512'hdeadbeef;
+                 if(extraState == 4'd0)  extraStateNext<= 4'd1;
+               else if( extraState == 4'd1)   extraStateNext<= 4'd2;
+               else if( extraState == 4'd2)   extraStateNext<= 4'd3;
+               else if( extraState == 4'd3)   extraStateNext<= 4'd4;
                else if( extraState == 4'd4)
                    begin 
                        nextstate  <= 4'd5;
-                       extraState <= 4'd0;
+                       extraStateNext <= 4'd0;
                   end
-                else nextstate <= 4'd0;
-           end
+             end
             
-            
-            
-            
-         else if (state == 4'd5)
-            begin
+         else if (state == 4'd5)   begin
+
                 if (carryAdd == 1) nextstate <= 4'd8; //carryAdd is our subtract finished What does this line do????
-               else if(extraState == 4'd0)  extraState<= 4'd1;
-               else if( extraState == 4'd1)   extraState<= 4'd2;
-               else if( extraState == 4'd2)   extraState<= 4'd3;
-               else if( extraState == 4'd3)   extraState<= 4'd4;
+               else if(extraState == 4'd0)  extraStateNext<= 4'd1;
+               else if( extraState == 4'd1)   extraStateNext<= 4'd2;
+               else if( extraState == 4'd2)   extraStateNext<= 4'd3;
+               else if( extraState == 4'd3)   extraStateNext<= 4'd4;
                else if( extraState == 4'd4)
                begin 
-                   nextstate  <= 4'd5;
-                   extraState <= 4'd0;
+                   nextstate  <= 4'd5; //TODO set back to 5
+                   extraStateNext <= 4'd0;
                end
-            end
-            
-         //else if (state == 4'd6) nextstate <= 4'd8;
+         end
+          
+    end
          
-
-    else if (state == 3'd6) nextstate <= 3'd0; 
-   end
-    assign result = resultAdd[511:0];
+    assign result = resultAdd[511:0]; //trueResult
     
     assign done = (state ==  4'd8) ? 1:0;
 endmodule
