@@ -17,7 +17,7 @@ module montgomery(
     wire[513:0] in_AddA;
     reg [3:0] showFluffyPonies;
     wire doneAdd;
-    wire[514:0] resultAdd;
+    wire[511:0] resultAdd;
     wire c_zero;
     reg shiftAdd;
     reg enableC;
@@ -31,7 +31,7 @@ module montgomery(
          .subtract (subtract),
          .in_a     (in_AddA   ),
          .c_zero   (c_zero),
-         .result   (resultAdd  ),
+         .trueResult   (resultAdd  ),
          .enableC  (enableC),
          .showFluffyPonies (showFluffyPonies),
          .done     (doneAdd    ),
@@ -206,7 +206,7 @@ module montgomery(
                startAdd         <= 1'b1;//our resetn
                subtract         <= 1'b1;
                mux_sel          <= 2'd1;//select regM_Q
-               enableC          <= 1'b1;
+               enableC          <= 1'b0;// I'm setting this to 0 and using the register to save our result
                shiftAdd         <= 1'b0;
                reset            <= 1'b0; //counter reset
                countEn          <= 1'b0;
@@ -322,12 +322,12 @@ module montgomery(
                else if( extraState == 4'd3)   extraState<= 4'd4;
                else if( extraState == 4'd4)
                begin 
-                   nextstate  <= 4'd6;
+                   nextstate  <= 4'd8;
                    extraState <= 4'd0;
                end
             end
             
-         else if (state == 4'd6) nextstate <= 4'd8;
+         //else if (state == 4'd6) nextstate <= 4'd8;
          
 
     else if (state == 3'd6) nextstate <= 3'd0; 

@@ -9,23 +9,23 @@ module mpadder(
     input  wire         enableC,
     input  wire [3:0]   showFluffyPonies,
     input  wire         enableCarry,
-    output wire [514:0] result,
+    output wire [511:0] trueResult,
     output wire         cZero,
     output wire         carry // better name would be subtract_finished
     //output wire         done
      );
      
-          
+     assign trueResult = c_regb[511:0]; //we store the to be subtracted value in c_regb, and get our result from there once done   
 
      
      
-     
+     wire [514:0] result;
      
      
      wire [513:0] addInput;
-     
-     //for loop of doom and despair
-     wire        c_enable;
+
+
+     wire        c_enable; //same things as enableC
      wire        c_shift;
      wire [513:0] C1b; //514* 2, + the last one which is a a shiftSave
      wire [513:0] C2b; 
@@ -36,6 +36,7 @@ module mpadder(
          if(~resetn)         c_regb <= 514'd0;
          else if (c_shift)   c_regb <= {1'b0,c_db[513:1]};
          else if (c_enable)  c_regb <= c_db;
+         else if (subtract)  c_regb <= result[513:0];
      end
      
      
