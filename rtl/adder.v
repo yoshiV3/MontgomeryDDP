@@ -16,9 +16,9 @@ module mpadder(
      );
      
 
+     assign debugResult = {upperBitsSubtract ,result};
      
-     
-     wire [514:0] result;
+     wire [511:0] result;
      
      
      wire [513:0] addInput;
@@ -134,7 +134,7 @@ module mpadder(
      assign result_d2 = tempRes[102:0];
      assign result_d3 = tempRes[102:0]; 
      assign result_d4 = tempRes[102:0];
-     assign result_d5 = tempRes[101:0];       
+     assign result_d5 = tempRes[99:0];       
        
      assign result = {result_regFive, result_regFour, result_regThree, result_regTwo, result_regOne};
       
@@ -222,7 +222,7 @@ module mpadder(
     
     wire subtract_finished;
     
-    assign subract_finished = carry;
+    assign subtract_finished = carry;
     wire overflow;
     reg [1:0] upperBitsSubtract;
     always @(posedge clk)
