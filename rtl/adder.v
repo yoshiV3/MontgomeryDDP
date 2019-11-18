@@ -222,7 +222,7 @@ module mpadder(
     
     wire subtract_finished;
     
-    assign subtract_finished = carry;
+    assign carry = subtract_finished;
     wire overflow;
     reg [1:0] upperBitsSubtract;
     always @(posedge clk)
