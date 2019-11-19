@@ -208,14 +208,10 @@ module mpadder(
      generate
      for (i=0; i<=513; i = i+1) begin : somelabel
     add3 addCZero (
-        .clk(clk),
-        .resetn(resetn),
-        .enableC(enableC),
         .carry(C2c[i]), // upper bit
         .sum(C2b[i]), //lower bit of this
         .a(addInput[i]),    // input
-        .result({C1c[i],C1b[i]}), // C is the output wire in the outer module
-        .showFluffyPonies(showFluffyPonies)
+        .result({C1c[i],C1b[i]}) // C is the output wire in the outer module
     );
      
     end
@@ -255,13 +251,9 @@ module mpadder(
     
 endmodule
 module add3(
-    input   wire  clk,
-    input   wire  resetn,
-    input   wire  enableC,
     input   wire  carry,
     input   wire  sum,
     input   wire  a,
-    input   wire  [3:0] showFluffyPonies,
     output  wire  [1:0] result
     );
     
