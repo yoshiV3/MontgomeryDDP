@@ -152,7 +152,6 @@ module montgomery(
                shiftAdd    <= 1'b0;
                reset       <= 1'b1;
                countEn     <= 1'b0;
-               extraStateNext <= 4'd8;
                showFluffyPonies <= 4'd8;
                
               end
@@ -283,6 +282,7 @@ module montgomery(
     always @(*)
     begin
         if(state == 4'd0) begin
+            extraStateNext <= 4'd8;
            if(start)
                 nextstate <= 4'd1;
             else
@@ -290,12 +290,15 @@ module montgomery(
         end
         //begin state 
         else if (state == 4'd1) begin
+            extraStateNext <= 4'd8;
             if(regA_Q)
                  nextstate <= 4'd2;
              else
                  nextstate <= 4'd4;           
         end
+        
         else if (state == 4'd2) begin
+            extraStateNext <= 4'd8;
             if(regB_Q[0])
                  if(c_zero)
                     nextstate <= 4'd4;
@@ -307,60 +310,98 @@ module montgomery(
                  else
                     nextstate <= 4'd4;
         end
+        
         else if (state == 4'd3) begin
              if (counter_up == 10'd511) //switch 9
              begin
                 nextstate <= 4'd7; // Go to the end
                 extraStateNext <= 4'd0;
              end
-             else if(regA_shift[1]) nextstate <= 4'd2;
-             else nextstate <= 4'd6;
+             else if(regA_shift[1]) 
+             begin
+             nextstate <= 4'd2;
+             extraStateNext <= 4'd8;
+             end
+             else
+             begin
+             nextstate <= 4'd6;
+             extraStateNext <= 4'd8;
+             end
 
         end
+        
         else if (state == 4'd6) begin
+            extraStateNext <= 4'd8;
             if (c_zero) nextstate <= 4'd3;
             else        nextstate <= 4'd4;
         end
+        
+        
         else if (state == 4'd4) begin
              if (counter_up == 10'd511) //switch 9
              begin
                 nextstate <= 4'd7; // Go to the end
                 extraStateNext <= 4'd0;
              end
-             else if(regA_shift[1]) nextstate <= 4'd2;
+             else if(regA_shift[1]) 
+             begin
+             nextstate <= 4'd2;
+             extraStateNext <= 4'd8;
+             end
              else
              begin
+                 extraStateNext <= 4'd8;
                  if(c_one)
                     nextstate <= 4'd3;
                  else
                     nextstate <= 4'd4;   
              end
-        end            
+        end      
+              
             else if (state == 4'd7) begin
                //debug <= 512'hdeadbeef;
-                 if(extraState == 4'd0)  extraStateNext<= 4'd1;
-               else if( extraState == 4'd1)   extraStateNext<= 4'd2;
-               else if( extraState == 4'd2)   extraStateNext<= 4'd3;
-               else if( extraState == 4'd3)   extraStateNext<= 4'd4;
+                 if(extraState == 4'd0)  
+                 begin
+                 extraStateNext<= 4'd1;
+                 nextstate <= 4'd7;
+                 end
+               else if( extraState == 4'd1) begin   extraStateNext<= 4'd2; nextstate <= 4'd7; end
+               else if( extraState == 4'd2) begin  extraStateNext<= 4'd3; nextstate <= 4'd7; end
+               else if( extraState == 4'd3) begin extraStateNext<= 4'd4; nextstate <= 4'd7; end
                else if( extraState == 4'd4)
                    begin 
                        nextstate  <= 4'd5;  //CHANGE TO FIVE
                        extraStateNext <= 4'd0;
                   end
+               else
+               begin
+                 extraStateNext <= 4'd8;
+                 nextstate <= 4'd0;
+               end
              end
             
          else if (state == 4'd5)   begin
 
-                if (carryAdd == 1'b1) nextstate <= 4'd8; //carryAdd is our subtract finished What does this line do????
-               else if(extraState == 4'd0)  extraStateNext<= 4'd1;
-               else if( extraState == 4'd1)   extraStateNext<= 4'd2;
-               else if( extraState == 4'd2)   extraStateNext<= 4'd3;
-               else if( extraState == 4'd3)   extraStateNext<= 4'd4;
+                if (carryAdd == 1'b1) begin nextstate <= 4'd8; extraStateNext<= 4'd8; end //carryAdd is our subtract finished What does this line do????
+               else if(extraState == 4'd0)  begin extraStateNext<= 4'd1; nextstate <= 4'd5; end
+               else if( extraState == 4'd1) begin extraStateNext<= 4'd2; nextstate <= 4'd5; end
+               else if( extraState == 4'd2) begin extraStateNext<= 4'd3; nextstate <= 4'd5; end
+               else if( extraState == 4'd3) begin extraStateNext<= 4'd4; nextstate <= 4'd5; end
                else if( extraState == 4'd4)
                begin 
                    nextstate  <= 4'd5; //TODO set back to 5
                    extraStateNext <= 4'd0;
                end
+               else
+               begin
+                 extraStateNext <= 4'd8;
+                 nextstate <= 4'd0;
+               end
+            end
+         else 
+         begin
+         nextstate <= 4'd0;
+         extraStateNext <= 4'd8;
          end
           
     end
