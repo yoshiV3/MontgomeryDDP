@@ -50,10 +50,14 @@ module montgomery(
     reg[511:0]   regA_shift;
     always @(posedge clk)
     begin
-        if(~ resetn)          regA_Q <= 512'd0;
+        if(~ resetn)    begin
+              regA_Q <= 1'd0;
+              regA_shift <= 512'd0;
+        end
         else if (regA_en) 
                   begin
                   regA_shift <= regA_D;
+                  regA_Q <= regA_D[0];
                   end
          else if (regA_sh)
                   begin
@@ -96,11 +100,8 @@ module montgomery(
         else                        muxOut = 514'b0;
     end
     
-    reg[513:0]  muxOutSub; 
-    always @(*)   
-    begin
-        assign muxOutSub = (subtract==1'b1)? ~muxOut+1:muxOut;
-    end    
+    wire [513:0]  muxOutSub; 
+    assign muxOutSub = (subtract==1'b1)? ~muxOut+1:muxOut;   
     assign in_AddA = muxOutSub; 
     
     reg [3:0] state, nextstate;
@@ -297,9 +298,9 @@ module montgomery(
         else if (state == 4'd2) begin
             if(regB_Q[0])
                  if(c_zero)
-                    nextstate <= 4'd3;
+                    nextstate <= 4'd4;
                  else
-                    nextstate <= 4'd4;  
+                    nextstate <= 4'd3;  
             else
                  if(c_zero == 1'b1)
                     nextstate <= 4'd3;

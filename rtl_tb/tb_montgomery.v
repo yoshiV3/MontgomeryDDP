@@ -48,12 +48,11 @@ module tb_montgomery();
         $display("start debugging now");
         
         // You can generate your own with test vector generator python script
-        in_a     <= 512'hc61580d64383684719d20d6ff68fec3e13bc1001b8f4f8c51458bce05d18ed0da753553a5b0f167c07713a92d541d9fe3979f79f4718f79ca7df647811e14692;
-        in_b     <= 512'hcabe8494b51e533c3982f519de2f29a8631da6cb3a8af36b02edd0b8df05607756905a551de9b64cba87a2b538cfc8ca967870327437df9577f88d7951777580;
-        in_m     <= 512'hbde121ba1060d96fff9d8257793661809b16fe5a8f04fa4539e2ff0a9b729071cf2cdf208b9ebd952ac4de5b72ed6a7bd09d0a0a961bf86413b7e95f40ea3679;
-        expected <= 512'hb3c6f516755a32ef97fab185b929e6b2cfa593ef22607d11ad82b13459e1c96e9fe0720f8420319dca8272f6fe22610b9d6075a964737db109f38fbad3db5873;
-        
-        
+        in_a     <= 512'h87b21d93a10f35511c8d56264a6f95f0245d8004e0d3557c7ec2b396b4ed3cabda34f88e0c8154e9ffab2761e626a720eef1da7ee31ce6c31fcdeaec38eb9589;
+        in_b     <= 512'h901702c94e8d7f3c733aafa46a6b43948148fd2f08761b134bc6815c3a69f4fc4ca4cbec55a2e1e70178549683bf79db5fec9631717e6ae69a5ea5c9eb2a118d;
+        in_m     <= 512'hf8f635bfae6507fc726853e48b8ff18f8037f58fbef63debba0381f2a7da936679f14a270b1129a730d905d283459a275b4dd75470965dfa6386b5321563997d;
+        expected <= 512'hefbbb81aee8737730fcc1b52630ad7056a18df6a9b0c0f0744d2c0f0cc7ac28991b23733a539d8a06329f65394307f2b4f0a3e146227179be2d5ce9f71561b2;
+             
          $display("start the madness");
         start<=1;
         #`CLK_PERIOD;
