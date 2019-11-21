@@ -368,7 +368,8 @@ module montgomery(
                else if( extraState == 4'd1) begin   extraStateNext<= 4'd2; nextstate <= 4'd7; end
                else if( extraState == 4'd2) begin  extraStateNext<= 4'd3; nextstate <= 4'd7; end
                else if( extraState == 4'd3) begin extraStateNext<= 4'd4; nextstate <= 4'd7; end
-               else if( extraState == 4'd4)
+               else if( extraState == 4'd4) begin extraStateNext<= 4'd5; nextstate <= 4'd7; end
+               else if( extraState == 4'd5)
                    begin 
                        nextstate  <= 4'd5;  //CHANGE TO FIVE
                        extraStateNext <= 4'd0;
@@ -387,7 +388,8 @@ module montgomery(
                else if( extraState == 4'd1) begin extraStateNext<= 4'd2; nextstate <= 4'd5; end
                else if( extraState == 4'd2) begin extraStateNext<= 4'd3; nextstate <= 4'd5; end
                else if( extraState == 4'd3) begin extraStateNext<= 4'd4; nextstate <= 4'd5; end
-               else if( extraState == 4'd4)
+               else if( extraState == 4'd4) begin extraStateNext<= 4'd5; nextstate <= 4'd5; end
+               else if( extraState == 4'd5)
                begin 
                    nextstate  <= 4'd5; //TODO set back to 5
                    extraStateNext <= 4'd0;
