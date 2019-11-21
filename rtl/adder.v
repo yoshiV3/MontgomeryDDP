@@ -181,7 +181,7 @@ module mpadder(
       (showFluffyPonies == 4'd1) ? C2c[205:103 ] : 
       (showFluffyPonies == 4'd2) ? C2c[308:206] : 
       (showFluffyPonies == 4'd3) ? C2c[411:309] : 
-      C2c[515:412];
+      C2c[514:412];
  
      assign operandAShift = (subtract) ? (
      (showFluffyPonies == 4'd0) ? result_regOne :
