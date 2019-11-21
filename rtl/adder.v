@@ -170,40 +170,26 @@ module mpadder(
      wire [102:0] operandA; 
      wire [102:0] operandB;
 
-     genvar j;
-     generate
-     for (j=0; j <= 101; j=j+1) begin : anotherlabel
-      assign operandA[j] = (showFluffyPonies == 4'b0) ? C2b[j] : 
-      (showFluffyPonies == 4'd1) ? C2b[j + 103] : 
-      (showFluffyPonies == 4'd2) ? C2b[j + 206] : 
-      (showFluffyPonies == 4'd3) ? C2b[j + 309] : 
-      C2b[j + 412];
-      assign operandB[j] = (showFluffyPonies == 4'b0) ? C2c[j] : 
-      (showFluffyPonies == 4'd1) ? C2c[j + 103 ] : 
-      (showFluffyPonies == 4'd2) ? C2c[j + 206] : 
-      (showFluffyPonies == 4'd3) ? C2c[j + 309] : 
-      C2c[j + 412];
-      assign operandA[102] = (showFluffyPonies == 4'b0) ? C2b[102] : 
-      (showFluffyPonies == 4'd1) ? C2b[205] : 
-      (showFluffyPonies == 4'd2) ? C2b[308] : 
-      (showFluffyPonies == 4'd3) ? C2b[411] : 
-      1'b0;
-      assign operandB[102] = (showFluffyPonies == 4'b0) ? C2c[102] : 
-      (showFluffyPonies == 4'd1) ? C2c[205] : 
-      (showFluffyPonies == 4'd2) ? C2c[308] : 
-      (showFluffyPonies == 4'd3) ? C2c[411] : 
-      C2c[514];
-     end
-     endgenerate
+      assign operandA = (showFluffyPonies == 4'b0) ? C2b[102:0] : 
+     (showFluffyPonies == 4'd1) ? C2b[205:103] : 
+     (showFluffyPonies == 4'd2) ? C2b[308:206] : 
+     (showFluffyPonies == 4'd3) ? C2b[411:309] : 
+     C2b[513:412]; 
      
-
+     
+      assign operandB = (showFluffyPonies == 4'b0) ? C2c[102:0] : 
+      (showFluffyPonies == 4'd1) ? C2c[205:103 ] : 
+      (showFluffyPonies == 4'd2) ? C2c[308:206] : 
+      (showFluffyPonies == 4'd3) ? C2c[411:309] : 
+      C2c[515:412];
+ 
      assign operandAShift = (subtract) ? (
      (showFluffyPonies == 4'd0) ? result_regOne :
      (showFluffyPonies == 4'd1) ? result_regTwo :
      (showFluffyPonies == 4'd2) ? result_regThree :
      (showFluffyPonies == 4'd3) ? result_regFour :
      result_regFive
-     ): operandA;
+     ): operandA;                                                                                                                                                                                                                                                                                                                                                                                             
 
      assign operandBShift = (subtract) ? (
      (showFluffyPonies == 4'd0) ? in_a[102:0] :
