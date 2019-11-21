@@ -63,9 +63,9 @@ module mpadder(
      assign cZero = C2b[0]^C2c[0]; // C[0] is our carry for the shift
      assign c_shift = shift;
      
-     wire [103:0] operandAShift;
-     wire [103:0] operandBShift;
-     wire [104:0] tempRes;
+     wire [102:0] operandAShift;
+     wire [102:0] operandBShift;
+     wire [103:0] tempRes;
      
 
 
@@ -142,21 +142,27 @@ module mpadder(
       
      
      // 103 bit adder
-     reg  [1:0] carry_in;
+     reg  carry_inNew;
      always @(posedge clk)
      begin
-         if(~resetn)          carry_in <= 2'd0;
-         else if(showFluffyPonies[3] == 1'b0) carry_in <= tempRes[104:103];
+         if(~resetn)          carry_inNew <= 2'd0;
+         else if(showFluffyPonies[3] == 1'b0) carry_inNew <= tempRes[103];
      end
      
-     wire         carryIn;
-     assign carryIn =  (showFluffyPonies == 4'b0 && ~subtract)? C2c[0]:1'b0;  
+
      
-     wire [1:0] carryStream;
+     wire LSBSum;
+
      
-     assign carryStream = carry_in + carryIn;
+   
      
-     assign tempRes = operandAShift + operandBShift + carryStream + (subtract && (showFluffyPonies == 4'b0)); //(subtract && showFluffyPonies because our muxout 
+     assign LSBSum = ((showFluffyPonies == 4'b0) && (subtract)) || (carry_inNew && (showFluffyPonies != 4'b0));
+     
+
+     
+     
+     
+     assign tempRes = operandAShift + operandBShift + LSBSum; //(subtract && showFluffyPonies because our muxout 
                                                                                                             //can't do an add)
      
      // multiplexer to fit tempres into this
@@ -172,40 +178,40 @@ module mpadder(
       (showFluffyPonies == 4'd2) ? C2b[j + 206] : 
       (showFluffyPonies == 4'd3) ? C2b[j + 309] : 
       C2b[j + 412];
-      assign operandB[j] = (showFluffyPonies == 4'b0) ? C2c[j + 1] : 
-      (showFluffyPonies == 4'd1) ? C2c[j + 104 ] : 
-      (showFluffyPonies == 4'd2) ? C2c[j + 207] : 
-      (showFluffyPonies == 4'd3) ? C2c[j + 310] : 
-      C2c[j + 413];
+      assign operandB[j] = (showFluffyPonies == 4'b0) ? C2c[j] : 
+      (showFluffyPonies == 4'd1) ? C2c[j + 103 ] : 
+      (showFluffyPonies == 4'd2) ? C2c[j + 206] : 
+      (showFluffyPonies == 4'd3) ? C2c[j + 309] : 
+      C2c[j + 412];
       assign operandA[102] = (showFluffyPonies == 4'b0) ? C2b[102] : 
       (showFluffyPonies == 4'd1) ? C2b[205] : 
       (showFluffyPonies == 4'd2) ? C2b[308] : 
       (showFluffyPonies == 4'd3) ? C2b[411] : 
       1'b0;
-      assign operandB[102] = (showFluffyPonies == 4'b0) ? C2c[103] : 
-      (showFluffyPonies == 4'd1) ? C2c[206] : 
-      (showFluffyPonies == 4'd2) ? C2c[309] : 
-      (showFluffyPonies == 4'd3) ? C2c[412] : 
-      1'b0;
+      assign operandB[102] = (showFluffyPonies == 4'b0) ? C2c[102] : 
+      (showFluffyPonies == 4'd1) ? C2c[205] : 
+      (showFluffyPonies == 4'd2) ? C2c[308] : 
+      (showFluffyPonies == 4'd3) ? C2c[411] : 
+      C2c[514];
      end
      endgenerate
      
 
      assign operandAShift = (subtract) ? (
-     (showFluffyPonies == 4'd0) ? {1'b0,result_regOne} :
-     (showFluffyPonies == 4'd1) ? {1'b0,result_regTwo} :
-     (showFluffyPonies == 4'd2) ? {1'b0,result_regThree} :
-     (showFluffyPonies == 4'd3) ? {1'b0,result_regFour} :
-     {1'b0,result_regFive}
-     ): {1'b0, operandA};
+     (showFluffyPonies == 4'd0) ? result_regOne :
+     (showFluffyPonies == 4'd1) ? result_regTwo :
+     (showFluffyPonies == 4'd2) ? result_regThree :
+     (showFluffyPonies == 4'd3) ? result_regFour :
+     result_regFive
+     ): operandA;
 
      assign operandBShift = (subtract) ? (
-     (showFluffyPonies == 4'd0) ? {1'b0,in_a[102:0]} :
-     (showFluffyPonies == 4'd1) ? {1'b0,in_a[205:103]} :
-     (showFluffyPonies == 4'd2) ? {1'b0,in_a[308:206]} :
-     (showFluffyPonies == 4'd3) ? {1'b0,in_a[411:309]} :
-     {4'b0, in_a[511:412]}
-     ) : {operandB, 1'b0};
+     (showFluffyPonies == 4'd0) ? in_a[102:0] :
+     (showFluffyPonies == 4'd1) ? in_a[205:103] :
+     (showFluffyPonies == 4'd2) ? in_a[308:206] :
+     (showFluffyPonies == 4'd3) ? in_a[411:309] :
+     in_a[511:412]
+     ) : operandB;
      
      assign addInput = in_a;
      
