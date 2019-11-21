@@ -27,7 +27,9 @@ module mpadder(
 
      wire        c_enable; //same things as enableC
      wire        c_shift;
+
      wire [513:0] C1b; //514* 2, + the last one which is a a shiftSave
+
      wire [513:0] C2b; 
      wire [513:0] c_db;
      reg  [513:0] c_regb;
@@ -39,8 +41,7 @@ module mpadder(
          else if (subtract && showFluffyPonies == 4'b0)  c_regb <= {2'b0, result};
      end
      
-     
-     
+
      wire [513:0] C1c; //514* 2, + the last one which is a a shiftSave
      wire [514:0] C2c; 
      wire [513:0] c_dc;
@@ -150,7 +151,13 @@ module mpadder(
      
      wire         carryIn;
      assign carryIn =  (showFluffyPonies == 4'b0 && ~subtract)? C2c[0]:1'b0;  
-     assign tempRes = operandAShift + operandBShift + carry_in + carryIn;
+     
+     wire [1:0] carryStream;
+     
+     assign carryStream = carry_in + carryIn;
+     
+     assign tempRes = operandAShift + operandBShift + carryStream + (subtract && (showFluffyPonies == 4'b0)); //(subtract && showFluffyPonies because our muxout 
+                                                                                                            //can't do an add)
      
      // multiplexer to fit tempres into this
      
@@ -183,7 +190,7 @@ module mpadder(
      end
      endgenerate
      
-     
+
      assign operandAShift = (subtract) ? (
      (showFluffyPonies == 4'd0) ? {1'b0,result_regOne} :
      (showFluffyPonies == 4'd1) ? {1'b0,result_regTwo} :
@@ -191,8 +198,7 @@ module mpadder(
      (showFluffyPonies == 4'd3) ? {1'b0,result_regFour} :
      {1'b0,result_regFive}
      ): {1'b0, operandA};
-     
-     
+
      assign operandBShift = (subtract) ? (
      (showFluffyPonies == 4'd0) ? {1'b0,in_a[102:0]} :
      (showFluffyPonies == 4'd1) ? {1'b0,in_a[205:103]} :
@@ -207,6 +213,7 @@ module mpadder(
      genvar i;
      generate
      for (i=0; i<=513; i = i+1) begin : somelabel
+     (* dont_touch = "true"*)
     add3 addCZero (
         .carry(C2c[i]), // upper bit
         .sum(C2b[i]), //lower bit of this

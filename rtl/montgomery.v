@@ -101,7 +101,7 @@ module montgomery(
     end
     
     wire [513:0]  muxOutSub; 
-    assign muxOutSub = (subtract==1'b1)? ~muxOut+1:muxOut;   
+    assign muxOutSub = (subtract==1'b1)? ~muxOut:muxOut;   //WE BROKEN ADD A PLUS ONE (we will add in the adder)
     assign in_AddA = muxOutSub; 
     
     reg [3:0] state, nextstate;
