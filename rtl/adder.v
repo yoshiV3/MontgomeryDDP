@@ -152,16 +152,18 @@ module mpadder(
      (showFluffyPonies == 4'd1) ? C2b[205:103] :
      (showFluffyPonies == 4'd2) ? C2b[308:206] : 
      (showFluffyPonies == 4'd3) ? C2b[411:309] : 
-     (showFluffyPonies == 4'd4) ? C2b[513:412]:
-     103'b0; 
+     C2b[513:412];
+//     (showFluffyPonies == 4'd4) ? C2b[513:412]:
+//     103'b0; 
      
      
       assign operandB = (showFluffyPonies == 4'b0) ? C2c[102:0] : 
       (showFluffyPonies == 4'd1) ? C2c[205:103 ] : 
       (showFluffyPonies == 4'd2) ? C2c[308:206] : 
       (showFluffyPonies == 4'd3) ? C2c[411:309] : 
-      (showFluffyPonies == 4'd4) ? C2c[514:412]:
-       103'b0; 
+      C2c[514:412];
+//      (showFluffyPonies == 4'd4) ? C2c[514:412]:
+//       103'b0; 
       
 
      assign operandAShift = (subtract) ? (
@@ -169,8 +171,9 @@ module mpadder(
      (showFluffyPonies == 4'd1) ? result_regTwo :
      (showFluffyPonies == 4'd2) ? result_regThree :
      (showFluffyPonies == 4'd3) ? result_regFour :
-     (showFluffyPonies == 4'd4) ? result_regFive :
-     103'b0
+     result_regFive
+//     (showFluffyPonies == 4'd4) ? result_regFive :
+//     103'b0
      ): operandA;                                                                                                                                                                                                                                                                                                                                                                                             
 
      assign operandBShift = (subtract) ? (
@@ -178,8 +181,9 @@ module mpadder(
      (showFluffyPonies == 4'd1) ? in_a[205:103] :
      (showFluffyPonies == 4'd2) ? in_a[308:206] :
      (showFluffyPonies == 4'd3) ? in_a[411:309] :
-     (showFluffyPonies == 4'd4) ? in_a[511:412] :
-     103'b0
+     in_a[511:412] 
+//     (showFluffyPonies == 4'd4) ? in_a[511:412] :
+//     103'b0
      ) : operandB;
      
 
