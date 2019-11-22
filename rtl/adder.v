@@ -4,8 +4,12 @@ module mpadder(
     input  wire         clk,
     input  wire         resetn,
     input  wire         subtract,
-    input  wire [513:0] in_a,
-    input  wire         shift,
+    input  wire [511:0] B0,
+    input  wire [512:0] B1,
+    input  wire [511:0] M0,
+    input  wire [512:0] M1,
+    input  wire [513:0] subtraction, //now only for the subtract
+    input  wire         c_doubleshift,
     input  wire         enableC,
     input  wire [3:0]   showFluffyPonies,
     output wire [513:0] trueResult,
@@ -22,11 +26,11 @@ module mpadder(
      wire [511:0] result;
      
      
-     wire [513:0] addInput;
+
 
 
      wire        c_enable; //same things as enableC
-     wire        c_shift;
+
 
      wire [513:0] C1b; //514* 2, + the last one which is a a shiftSave
 
@@ -36,7 +40,7 @@ module mpadder(
      always @(posedge clk)
      begin
          if(~resetn)         c_regb <= 514'd0;
-         else if (c_shift)   c_regb <= {1'b0,c_db[513:1]};
+         else if (c_doubleshift)   c_regb <= {2'b0,c_db[513:2]};
          else if (c_enable)  c_regb <= c_db;
          else if (subtract && showFluffyPonies == 4'b0)  c_regb <= {2'b0, result};
      end
@@ -49,7 +53,7 @@ module mpadder(
      always @(posedge clk)
      begin
          if(~resetn)         c_regc <= 515'd0;
-         else if (c_shift)   c_regc <= {1'b0,c_dc};
+         else if (c_doubleshift)   c_regc <= {2'b0,c_dc[513:1]}; //one shift because the other shift is done in the adder by starting at 0
          else if (c_enable)  c_regc <= {c_dc,1'b0};
      end
      
@@ -60,8 +64,9 @@ module mpadder(
      assign c_enable = enableC;
      assign C2b = c_regb;
      assign C2c = c_regc;
-     assign cZero = C2b[0]^C2c[0]; // C[0] is our carry for the shift
-     assign c_shift = shift;
+     assign cZero = C2b[0]^C2c[0]; // C[0] is our carry for the shift we save it because it actually still counts, once if gets further shifted we forget it
+     assign cOne = C2b[1]^C2c[1]^(C2b[0]&C2c[0]);
+
      
      wire [102:0] operandAShift;
      wire [102:0] operandBShift;
@@ -177,11 +182,11 @@ module mpadder(
      ): operandA;                                                                                                                                                                                                                                                                                                                                                                                             
 
      assign operandBShift = (subtract) ? (
-     (showFluffyPonies == 4'd0) ? in_a[102:0] :
-     (showFluffyPonies == 4'd1) ? in_a[205:103] :
-     (showFluffyPonies == 4'd2) ? in_a[308:206] :
-     (showFluffyPonies == 4'd3) ? in_a[411:309] :
-     in_a[511:412] 
+     (showFluffyPonies == 4'd0) ? subtraction[102:0] :
+     (showFluffyPonies == 4'd1) ? subtraction[205:103] :
+     (showFluffyPonies == 4'd2) ? subtraction[308:206] :
+     (showFluffyPonies == 4'd3) ? subtraction[411:309] :
+     subtraction[511:412] 
 //     (showFluffyPonies == 4'd4) ? in_a[511:412] :
 //     103'b0
      ) : operandB;
@@ -231,25 +236,65 @@ module mpadder(
 
 
      
-     assign addInput = in_a;
+
      
      // but first initialize our cZerowith state register 'r_state_reg' using encoding 'one-hot' in module 'AXI4_S'
+     
+     wire [513:0] LeftCarry;
+     wire [513:0] LeftBit;
+     wire [513:0] RightCarry;
+     wire [513:0] RightBit;
+     wire [513:0] MiddleCarry;
+     wire [513:0] MiddleBit;
+     
+     wire [513:0] LeftCarryShift = {LeftCarry[512:0], 1'b0};
+     wire [513:0] RightCarryShift = {RightCarry[512:0], 1'b0};
+     wire [513:0] MiddleCarryShift = {MiddleCarry[512:0], 1'b0};
+     
+     wire [513:0] B0Pad = {2'b0, B0};
+     wire [513:0] B1Pad = {2'b0, B1};
+     wire [513:0] M0Pad = {2'b0, M0};
+     wire [513:0] M1Pad = {2'b0, M1};
 
 
      genvar i;
      generate
-     for (i=0; i<=513; i = i+1) begin : somelabel
+     for (i=0; i<=513; i = i+1) begin : do4Adders
      (* dont_touch = "true"*)
-    add3 addCZero (
+    add3 addLeft (
         .carry(C2c[i]), // upper bit
         .sum(C2b[i]), //lower bit of this
-        .a(addInput[i]),    // input
+        .a(B0Pad[i]),    // input
+        .result({LeftCarry[i],LeftBit[i]}) // C is the output wire in the outer module
+    );
+    
+    add3 addRight (
+        .carry(B1Pad[i]), // upper bit
+        .sum(M0Pad[i]), //lower bit of this
+        .a(M1Pad[i]),    // input
+        .result({RightCarry[i],RightBit[i]}) // C is the output wire in the outer module
+    );
+        
+    add3 addMiddle (
+        .carry(LeftCarryShift[i]), // upper bit
+        .sum(LeftBit[i]), //lower bit of this
+        .a(RightCarryShift[i]),    // input
+        .result({MiddleCarry[i],MiddleBit[i]}) // C is the output wire in the outer module
+    );
+            
+    add3 addBottom (
+        .carry(MiddleCarryShift[i]), // upper bit
+        .sum(MiddleBit[i]), //lower bit of this
+        .a(RightBit[i]),    // input
         .result({C1c[i],C1b[i]}) // C is the output wire in the outer module
     );
-     
+    
+    
+    
     end
     endgenerate
     
+
     wire subtract_finished;
     
     assign carry = subtract_finished;

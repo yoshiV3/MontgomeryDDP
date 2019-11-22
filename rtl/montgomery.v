@@ -20,18 +20,28 @@ module montgomery(
     wire[513:0] resultAdd;
     wire c_zero;
     wire c_one;
-    reg shiftAdd;
     reg enableC;
     wire carryAdd;
     wire [513:0] debugResult;
+    
+    wire [511:0] B0;
+    wire [512:0] B1;
+    wire [511:0] M0;
+    wire [512:0] M1;
+    
+    wire negativeM;
     // Student tasks:
      // 1. Instantiate an Adder
      mpadder dut (
-         .shift    (shiftAdd),
+
          .clk      (clk     ),
          .resetn   (startAdd ),
          .subtract (subtract),
-         .in_a     (in_AddA   ),
+         .B0     (B0),
+         .B1     (B1),
+         .M0     (M0),
+         .M1     (M1),
+         .subtraction   (negativeM),
          .cZero   (c_zero),
          .cOne    (c_one),
          .trueResult   (resultAdd),
@@ -42,6 +52,12 @@ module montgomery(
     // 2. Use the Adder to implement the Montgomery multiplier in hardware.
     // 3. Use tb_montgomery.v to simulate your design.
     //registers for A,M and B
+    
+    wire M0Select;
+    wire M0Carry;
+    wire M1Select;
+
+    
     
     reg          regA_en;
     reg          regA_sh;
@@ -91,18 +107,32 @@ module montgomery(
     assign regM_D = in_m; 
     
     
-    reg[1:0]    mux_sel;
-    reg[513:0]  muxOut; 
-    always @(*)
-    begin
-        if       (mux_sel == 2'b0)  muxOut = {2'b0,regB_Q};
-        else if  (mux_sel == 2'b1)  muxOut = {2'b0,regM_Q};
-        else                        muxOut = 514'b0;
-    end
+
+ 
+ 
+    assign negativeM =  ~regM_Q;   //WE BROKEN ADD A PLUS ONE (we will add in the adder)
     
-    wire [513:0]  muxOutSub; 
-    assign muxOutSub = (subtract)? ~muxOut:muxOut;   //WE BROKEN ADD A PLUS ONE (we will add in the adder)
-    assign in_AddA = muxOutSub; 
+    
+    
+    
+        
+    assign M0Select = (c_zero ^ regB_Q[0]);
+    assign M0Carry = (c_zero && regB_Q[0]) || (regM_Q[0] && regB_Q[0]) || (regM_Q[0] && c_zero);
+    assign M1Select = M0Carry ^ c_one ^ (regA_shift[0] & regB_Q[1]) ^ (regM_Q[0] & M0Select) ^ (regA_shift[1] & regB_Q[0]);
+    
+    genvar i;
+    generate
+    for (i=0; i<=511; i = i+1) begin : multiplexWithZeroIsAnd
+    assign B0[i] = regA_shift[0] & regB_Q[i];
+    assign B1[i+1] = regA_shift[1] & regB_Q[i+1];
+    assign M0[i] = M0Select & regM_Q[i];
+    assign M1[i+1] = M1Select & regM_Q[i+1];
+    end
+    endgenerate
+    assign B1[0] = 1'b0; //shifted left so we can shift right twice at the end
+    assign M1[0] = 1'b0; 
+    
+
     
     reg [3:0] state, nextstate;
     reg [3:0] extraState;
@@ -147,9 +177,7 @@ module montgomery(
                regA_sh     <= 1'b0;
                startAdd    <= 1'b0;
                subtract    <= 1'b0;
-               mux_sel     <= 2'b0;
                enableC     <= 1'b0;
-               shiftAdd    <= 1'b0;
                reset       <= 1'b1;
                countEn     <= 1'b0;
                showFluffyPonies <= 4'd8;
@@ -164,73 +192,69 @@ module montgomery(
                regA_sh     <= 1'b0;
                startAdd    <= 1'b0;
                subtract    <= 1'b0;
-               mux_sel     <= 2'b10;
                enableC     <= 1'b0;
-               shiftAdd    <= 1'b0;
                reset       <= 1'b0;
                countEn     <= 1'b0;
                showFluffyPonies <= 4'd8;
               end  
-          else if(state == 4'd2)       
-              begin
-               regM_en     <= 1'b0;
-               regB_en     <= 1'b0;
-               regA_en     <= 1'b0;
-               regA_sh     <= 1'b0;
-               startAdd    <= 1'b1;
-               subtract    <= 1'b0;
-               mux_sel     <= 2'b0;
-               enableC     <= 1'b1;
-               shiftAdd    <= 1'b0;
-               reset       <= 1'b0;
-               countEn     <= 1'b0;
-               showFluffyPonies <= 4'd8;
-              end 
+//          else if(state == 4'd2)       
+//              begin
+//               regM_en     <= 1'b0;
+//               regB_en     <= 1'b0;
+//               regA_en     <= 1'b0;
+//               regA_sh     <= 1'b0;
+//               startAdd    <= 1'b1;
+//               subtract    <= 1'b0;
+//               mux_sel     <= 2'b0;
+//               enableC     <= 1'b1;
+//               shiftAdd    <= 1'b0;
+//               reset       <= 1'b0;
+//               countEn     <= 1'b0;
+//               showFluffyPonies <= 4'd8;
+//              end 
           else if(state == 4'd3)       
               begin
                regM_en     <= 1'b0;
                regB_en     <= 1'b0;
                regA_en     <= 1'b0;
-               regA_sh     <= 1'b1;
+               regA_sh     <= 1'b1; //We shift every cycle
                startAdd    <= 1'b1;
                subtract    <= 1'b0;
-               mux_sel     <= 2'b1;
                enableC     <= 1'b1;
-               shiftAdd    <= 1'b1;
                reset       <= 1'b0;
                countEn     <= 1'b1;
                showFluffyPonies <= 4'd8;
               end    
-          else if(state == 4'd4)       
-              begin
-               regM_en     <= 1'b0;
-               regB_en     <= 1'b0;
-               regA_en     <= 1'b0;
-               regA_sh     <= 1'b1;
-               startAdd    <= 1'b1;
-               subtract    <= 1'b0;
-               mux_sel     <= 2'd2;
-               enableC     <= 1'b1;
-               shiftAdd    <= 1'b1;
-               reset       <= 1'b0;
-               countEn     <= 1'b1;
-               showFluffyPonies <= 4'd8;
-              end 
-          else if(state == 4'd6)       
-                  begin
-                   regM_en     <= 1'b0;
-                   regB_en     <= 1'b0;
-                   regA_en     <= 1'b0;
-                   regA_sh     <= 1'b0;
-                   startAdd    <= 1'b1;
-                   subtract    <= 1'b0;
-                   mux_sel     <= 2'd2;
-                   enableC     <= 1'b1;
-                   shiftAdd    <= 1'b0;
-                   reset       <= 1'b0;
-                   countEn     <= 1'b0;
-                   showFluffyPonies <= 4'd8;
-                  end 
+//          else if(state == 4'd4)       
+//              begin
+//               regM_en     <= 1'b0;
+//               regB_en     <= 1'b0;
+//               regA_en     <= 1'b0;
+//               regA_sh     <= 1'b1;
+//               startAdd    <= 1'b1;
+//               subtract    <= 1'b0;
+//               mux_sel     <= 2'd2;
+//               enableC     <= 1'b1;
+//               shiftAdd    <= 1'b1;
+//               reset       <= 1'b0;
+//               countEn     <= 1'b1;
+//               showFluffyPonies <= 4'd8;
+//              end 
+//          else if(state == 4'd6)       
+//                  begin
+//                   regM_en     <= 1'b0;
+//                   regB_en     <= 1'b0;
+//                   regA_en     <= 1'b0;
+//                   regA_sh     <= 1'b0;
+//                   startAdd    <= 1'b1;
+//                   subtract    <= 1'b0;
+//                   mux_sel     <= 2'd2;
+//                   enableC     <= 1'b1;
+//                   shiftAdd    <= 1'b0;
+//                   reset       <= 1'b0;
+//                   countEn     <= 1'b0;
+//                   showFluffyPonies <= 4'd8;
+//                  end 
           else if(state == 4'd5)       
               begin
                regM_en          <= 1'b0;
@@ -239,9 +263,7 @@ module montgomery(
                regA_sh          <= 1'b0;
                startAdd         <= 1'b1;//our resetn
                subtract         <= 1'b1;
-               mux_sel          <= 2'd1;//select regM_Q
                enableC          <= 1'b0;// I'm setting this to 0 and using the register to save our result
-               shiftAdd         <= 1'b0;
                reset            <= 1'b0; //counter reset
                countEn          <= 1'b0;
                showFluffyPonies <= extraState;
@@ -254,9 +276,7 @@ module montgomery(
                regA_sh          <= 1'b0;
                startAdd         <= 1'b1; //our resetn
                subtract         <= 1'b0;
-               mux_sel          <= 2'd0; //select between M and B
                enableC          <= 1'b0; //shouldn't C be off?
-               shiftAdd         <= 1'b0;
                reset            <= 1'b0; //counter reset
                countEn          <= 1'b0;
                showFluffyPonies <= extraState;
@@ -269,9 +289,7 @@ module montgomery(
              regA_sh          <= 1'b0;
              startAdd         <= 1'b1;
              subtract         <= 1'b0;
-             mux_sel          <= 2'd0;
              enableC          <= 1'b1;
-             shiftAdd         <= 1'b0;
              reset            <= 1'b0;
              countEn          <= 1'b0;
              showFluffyPonies <= extraState;
@@ -284,32 +302,19 @@ module montgomery(
         if(state == 4'd0) begin
             extraStateNext <= 4'd8;
            if(start)
-                nextstate <= 4'd1;
+                nextstate <= 4'd3;
             else
                 nextstate <= 4'd0;
         end
-        //begin state 
-        else if (state == 4'd1) begin
-            extraStateNext <= 4'd8;
-            if(regA_Q)
-                 nextstate <= 4'd2;
-             else
-                 nextstate <= 4'd4;           
-        end
-        
-        else if (state == 4'd2) begin
-            extraStateNext <= 4'd8;
-            if(regB_Q[0])
-                 if(c_zero)
-                    nextstate <= 4'd4;
-                 else
-                    nextstate <= 4'd3;  
-            else
-                 if(c_zero == 1'b1)
-                    nextstate <= 4'd3;
-                 else
-                    nextstate <= 4'd4;
-        end
+//        //begin state 
+//        else if (state == 4'd1) begin
+//            extraStateNext <= 4'd8;
+//            if(regA_Q)
+//                 nextstate <= 4'd2;
+//             else
+//                 nextstate <= 4'd4;           
+//        end
+
         
         else if (state == 4'd3) begin
              if (counter_up == 10'd511) //switch 9
@@ -317,46 +322,42 @@ module montgomery(
                 nextstate <= 4'd7; // Go to the end
                 extraStateNext <= 4'd0;
              end
-             else if(regA_shift[1]) 
+             else 
              begin
-             nextstate <= 4'd2;
-             extraStateNext <= 4'd8;
+                 nextstate <= 4'd3; // Go to the end
+                 extraStateNext <= 4'd8;
              end
-             else
-             begin
-             nextstate <= 4'd6;
-             extraStateNext <= 4'd8;
-             end
+             
 
         end
         
-        else if (state == 4'd6) begin
-            extraStateNext <= 4'd8;
-            if (c_zero) nextstate <= 4'd3;
-            else        nextstate <= 4'd4;
-        end
+//        else if (state == 4'd6) begin
+//            extraStateNext <= 4'd8;
+//            if (c_zero) nextstate <= 4'd3;
+//            else        nextstate <= 4'd4;
+//        end
         
         
-        else if (state == 4'd4) begin
-             if (counter_up == 10'd511) //switch 9
-             begin
-                nextstate <= 4'd7; // Go to the end
-                extraStateNext <= 4'd0;
-             end
-             else if(regA_shift[1]) 
-             begin
-             nextstate <= 4'd2;
-             extraStateNext <= 4'd8;
-             end
-             else
-             begin
-                 extraStateNext <= 4'd8;
-                 if(c_one)
-                    nextstate <= 4'd3;
-                 else
-                    nextstate <= 4'd4;   
-             end
-        end      
+//        else if (state == 4'd4) begin
+//             if (counter_up == 10'd511) //switch 9
+//             begin
+//                nextstate <= 4'd7; // Go to the end
+//                extraStateNext <= 4'd0;
+//             end
+//             else if(regA_shift[1]) 
+//             begin
+//             nextstate <= 4'd2;
+//             extraStateNext <= 4'd8;
+//             end
+//             else
+//             begin
+//                 extraStateNext <= 4'd8;
+//                 if(c_one)
+//                    nextstate <= 4'd3;
+//                 else
+//                    nextstate <= 4'd4;   
+//             end
+//        end      
               
             else if (state == 4'd7) begin
                //debug <= 512'hdeadbeef;
