@@ -252,9 +252,9 @@ module mpadder(
      wire [513:0] MiddleCarryShift = {MiddleCarry[512:0], 1'b0};
      
      wire [513:0] B0Pad = {2'b0, B0};
-     wire [513:0] B1Pad = {2'b0, B1};
+     wire [513:0] B1Pad = {1'b0, B1};
      wire [513:0] M0Pad = {2'b0, M0};
-     wire [513:0] M1Pad = {2'b0, M1};
+     wire [513:0] M1Pad = {1'b0, M1};
 
 
      genvar i;

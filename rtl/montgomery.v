@@ -29,7 +29,7 @@ module montgomery(
     wire [511:0] M0;
     wire [512:0] M1;
     
-    wire negativeM;
+    wire [511:0] negativeM;
     // Student tasks:
      // 1. Instantiate an Adder
      mpadder dut (
@@ -62,23 +62,19 @@ module montgomery(
     reg          regA_en;
     reg          regA_sh;
     wire [511:0] regA_D;
-    reg          regA_Q;
     reg[511:0]   regA_shift;
     always @(posedge clk)
     begin
         if(~ resetn)    begin
-              regA_Q <= 1'd0;
               regA_shift <= 512'd0;
         end
         else if (regA_en) 
                   begin
                   regA_shift <= regA_D;
-                  regA_Q <= regA_D[0];
                   end
          else if (regA_sh)
                   begin
-                  regA_shift <= {1'b0,regA_shift[511:1]};        
-                  regA_Q <= regA_shift[0];
+                  regA_shift <= {2'b0,regA_shift[511:2]};        
                   end
      end
     
@@ -124,9 +120,9 @@ module montgomery(
     generate
     for (i=0; i<=511; i = i+1) begin : multiplexWithZeroIsAnd
     assign B0[i] = regA_shift[0] & regB_Q[i];
-    assign B1[i+1] = regA_shift[1] & regB_Q[i+1];
+    assign B1[i+1] = regA_shift[1] & regB_Q[i]; //We automatically shift
     assign M0[i] = M0Select & regM_Q[i];
-    assign M1[i+1] = M1Select & regM_Q[i+1];
+    assign M1[i+1] = M1Select & regM_Q[i]; //We automatically shift
     end
     endgenerate
     assign B1[0] = 1'b0; //shifted left so we can shift right twice at the end
@@ -317,7 +313,7 @@ module montgomery(
 
         
         else if (state == 4'd3) begin
-             if (counter_up == 10'd511) //switch 9
+             if (counter_up == 10'd255) //switch 9
              begin
                 nextstate <= 4'd7; // Go to the end
                 extraStateNext <= 4'd0;
