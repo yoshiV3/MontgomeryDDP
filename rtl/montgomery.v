@@ -101,7 +101,7 @@ module montgomery(
     end
     
     wire [513:0]  muxOutSub; 
-    assign muxOutSub = (subtract==1'b1)? ~muxOut:muxOut;   //WE BROKEN ADD A PLUS ONE (we will add in the adder)
+    assign muxOutSub = (subtract)? ~muxOut:muxOut;   //WE BROKEN ADD A PLUS ONE (we will add in the adder)
     assign in_AddA = muxOutSub; 
     
     reg [3:0] state, nextstate;
@@ -408,5 +408,5 @@ module montgomery(
          
     assign result = resultAdd[511:0]; //trueResult
     
-    assign done = (state ==  4'd8) ? 1:0;
+    assign done = (state ==  4'd8);
 endmodule

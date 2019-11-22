@@ -70,7 +70,7 @@ module mpadder(
 
 
    
-     wire [102:0] result_d;
+     //wire [102:0] result_d;
      reg  [102:0] result_regOne;
      reg  [102:0] result_regTwo;
      reg  [102:0] result_regThree;
@@ -198,6 +198,8 @@ module mpadder(
      (showFluffyPonies == 4'd3) ? in_a[411:309] :
      in_a[511:412]
      ) : operandB;
+     
+
      
      assign addInput = in_a;
      
