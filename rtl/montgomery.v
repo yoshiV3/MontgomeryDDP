@@ -29,7 +29,9 @@ module montgomery(
     wire [511:0] M0;
     wire [512:0] M1;
     
-    wire [511:0] negativeM;
+    reg C_doubleshift;
+    
+    wire [512:0] negativeM;
     // Student tasks:
      // 1. Instantiate an Adder
      mpadder dut (
@@ -42,6 +44,7 @@ module montgomery(
          .M0     (M0),
          .M1     (M1),
          .subtraction   (negativeM),
+         .c_doubleshift (C_doubleshift),
          .cZero   (c_zero),
          .cOne    (c_one),
          .trueResult   (resultAdd),
@@ -56,6 +59,8 @@ module montgomery(
     wire M0Select;
     wire M0Carry;
     wire M1Select;
+    
+    
 
     
     
@@ -106,15 +111,15 @@ module montgomery(
 
  
  
-    assign negativeM =  ~regM_Q;   //WE BROKEN ADD A PLUS ONE (we will add in the adder)
-    
+    assign negativeM =  {~regM_Q, 1'b1};   //WE BROKE AN ADD A PLUS ONE (we will add in the adder)
+    //Also shift left the subtraction, which is why we add a one after shifting
     
     
     
         
-    assign M0Select = (c_zero ^ regB_Q[0]);
-    assign M0Carry = (c_zero && regB_Q[0]) || (regM_Q[0] && regB_Q[0]) || (regM_Q[0] && c_zero);
-    assign M1Select = M0Carry ^ c_one ^ (regA_shift[0] & regB_Q[1]) ^ (regM_Q[0] & M0Select) ^ (regA_shift[1] & regB_Q[0]);
+    assign M0Select = (c_zero ^ (regB_Q[0] & regA_shift[0]));
+    assign M0Carry = (c_zero & regB_Q[0]& regA_shift[0]) | (regM_Q[0] & M0Select & regB_Q[0]& regA_shift[0]) | (regM_Q[0] & M0Select & c_zero);
+    assign M1Select = M0Carry ^ c_one ^ (regA_shift[0] & regB_Q[1]) ^ (regM_Q[1] & M0Select) ^ (regA_shift[1] & regB_Q[0]);
     
     genvar i;
     generate
@@ -177,6 +182,7 @@ module montgomery(
                reset       <= 1'b1;
                countEn     <= 1'b0;
                showFluffyPonies <= 4'd8;
+               C_doubleshift <= 1'b0;
                
               end
         // firsrt state
@@ -192,6 +198,7 @@ module montgomery(
                reset       <= 1'b0;
                countEn     <= 1'b0;
                showFluffyPonies <= 4'd8;
+               C_doubleshift <= 1'b0;
               end  
 //          else if(state == 4'd2)       
 //              begin
@@ -220,6 +227,7 @@ module montgomery(
                reset       <= 1'b0;
                countEn     <= 1'b1;
                showFluffyPonies <= 4'd8;
+               C_doubleshift <= 1'b1;
               end    
 //          else if(state == 4'd4)       
 //              begin
@@ -263,6 +271,7 @@ module montgomery(
                reset            <= 1'b0; //counter reset
                countEn          <= 1'b0;
                showFluffyPonies <= extraState;
+               C_doubleshift <= 1'b0;
               end 
           else if(state == 4'd7)       
               begin
@@ -276,6 +285,7 @@ module montgomery(
                reset            <= 1'b0; //counter reset
                countEn          <= 1'b0;
                showFluffyPonies <= extraState;
+               C_doubleshift <= 1'b0;
               end    
          else 
             begin
@@ -289,6 +299,7 @@ module montgomery(
              reset            <= 1'b0;
              countEn          <= 1'b0;
              showFluffyPonies <= extraState;
+             C_doubleshift <= 1'b0;
             end 
     end
     //next state logic

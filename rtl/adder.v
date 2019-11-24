@@ -23,49 +23,53 @@ module mpadder(
 
      
      
-     wire [511:0] result;
+     wire [512:0] result;
      
      
 
 
 
      wire        c_enable; //same things as enableC
-
-
-     wire [513:0] C1b; //514* 2, + the last one which is a a shiftSave
-
+     wire [514:0] C1bOut;
+     wire [514:0] C1cOut;
      wire [513:0] C2b; 
-     wire [513:0] c_db;
-     reg  [513:0] c_regb;
+
+     reg  [513:0] c_regb; //TWICE AS LARGE AS THE CORRECT RESULT!!!
      always @(posedge clk)
      begin
          if(~resetn)         c_regb <= 514'd0;
-         else if (c_doubleshift)   c_regb <= {2'b0,c_db[513:2]};
-         else if (c_enable)  c_regb <= c_db;
-         else if (subtract && showFluffyPonies == 4'b0)  c_regb <= {2'b0, result};
+         else if (c_doubleshift)   c_regb <= {1'b0,C1bOut[514:2]}; //We only shift once now
+         else if (c_enable)  c_regb <= C1bOut[513:0];
+         else if (subtract && showFluffyPonies == 4'b0)  c_regb <= {1'b0, result};
      end
      
+  
+     
 
-     wire [513:0] C1c; //514* 2, + the last one which is a a shiftSave
+
      wire [514:0] C2c; 
-     wire [513:0] c_dc;
-     reg  [514:0] c_regc;
+
+     reg  [514:0] c_regc;//TWICE AS LARGE AS THE CORRECT RESULT!!!
      always @(posedge clk)
      begin
          if(~resetn)         c_regc <= 515'd0;
-         else if (c_doubleshift)   c_regc <= {2'b0,c_dc[513:1]}; //one shift because the other shift is done in the adder by starting at 0
-         else if (c_enable)  c_regc <= {c_dc,1'b0};
+         else if (c_doubleshift)   c_regc <= {1'b0,C1cOut[514:1]}; //one shift because the other shift is done in the adder by starting at 0
+         else if (c_enable)  c_regc <= C1cOut;
      end
      
      
-     
-     assign c_db = C1b;
-     assign c_dc = C1c;
+
      assign c_enable = enableC;
      assign C2b = c_regb;
      assign C2c = c_regc;
-     assign cZero = C2b[0]^C2c[0]; // C[0] is our carry for the shift we save it because it actually still counts, once if gets further shifted we forget it
-     assign cOne = C2b[1]^C2c[1]^(C2b[0]&C2c[0]);
+     //assign cZero = C2b[0]^C2c[0];This will always be 0
+     wire [3:0] sumCarryAndBit;
+     assign sumCarryAndBit = C2b[2:0] + C2c[2:0];
+     assign {cOne, cZero} = sumCarryAndBit[3:1]; //be don't need the 0 bit,
+     // since it will be 0, and the first bit is not our concern
+    // This can be optimized     
+     
+     //assign cOne = C2b[1]^C2c[1]^(C2b[0]&C2c[0]);
 
      
      wire [102:0] operandAShift;
@@ -118,10 +122,10 @@ module mpadder(
     end
     
     wire   resultFive_en ; 
-    wire [99:0] result_d5; 
+    wire [100:0] result_d5; 
     always @(posedge clk)
     begin
-        if(~resetn)             result_regFive  <= 100'd0;
+        if(~resetn)             result_regFive  <= 101'd0;
         else if (resultFive_en) result_regFive   <= result_d5;
     end
         
@@ -136,7 +140,7 @@ module mpadder(
      assign result_d2 = tempRes[102:0];
      assign result_d3 = tempRes[102:0]; 
      assign result_d4 = tempRes[102:0];
-     assign result_d5 = tempRes[99:0];       
+     assign result_d5 = tempRes[100:0];       
        
      assign result = {result_regFive, result_regFour, result_regThree, result_regTwo, result_regOne};
       
@@ -186,7 +190,7 @@ module mpadder(
      (showFluffyPonies == 4'd1) ? subtraction[205:103] :
      (showFluffyPonies == 4'd2) ? subtraction[308:206] :
      (showFluffyPonies == 4'd3) ? subtraction[411:309] :
-     subtraction[511:412] 
+     subtraction[512:412] 
 //     (showFluffyPonies == 4'd4) ? in_a[511:412] :
 //     103'b0
      ) : operandB;
@@ -240,30 +244,37 @@ module mpadder(
      
      // but first initialize our cZerowith state register 'r_state_reg' using encoding 'one-hot' in module 'AXI4_S'
      
-     wire [513:0] LeftCarry;
-     wire [513:0] LeftBit;
-     wire [513:0] RightCarry;
-     wire [513:0] RightBit;
-     wire [513:0] MiddleCarry;
-     wire [513:0] MiddleBit;
+     wire [514:0] LeftCarry;
+     wire [514:0] LeftBit;
+     wire [514:0] RightCarry;
+     wire [514:0] RightBit;
+     wire [514:0] MiddleCarry;
+     wire [514:0] MiddleBit;
      
-     wire [513:0] LeftCarryShift = {LeftCarry[512:0], 1'b0};
-     wire [513:0] RightCarryShift = {RightCarry[512:0], 1'b0};
-     wire [513:0] MiddleCarryShift = {MiddleCarry[512:0], 1'b0};
+     wire [514:0] LeftCarryShift = {1'b0,LeftCarry[513:0], 1'b0};
+     wire [514:0] RightCarryShift = {1'b0,RightCarry[513:0], 1'b0};
+     wire [514:0] MiddleCarryShift = {1'b0,MiddleCarry[513:0], 1'b0};
      
-     wire [513:0] B0Pad = {2'b0, B0};
-     wire [513:0] B1Pad = {1'b0, B1};
-     wire [513:0] M0Pad = {2'b0, M0};
-     wire [513:0] M1Pad = {1'b0, M1};
+     wire [514:0] B0Pad = {2'b0, B0, 1'b0};
+     wire [514:0] B1Pad = {1'b0,B1, 1'b0};
+     wire [514:0] M0Pad = {2'b0, M0, 1'b0};
+     wire [514:0] M1Pad = {1'b0,M1, 1'b0};
+     
+     wire [514:0] C2bPad = {1'b0, C2b};
+     
+
+     
+
+     
 
 
      genvar i;
      generate
-     for (i=0; i<=513; i = i+1) begin : do4Adders
+     for (i=0; i<=514; i = i+1) begin : do4Adders
      (* dont_touch = "true"*)
     add3 addLeft (
         .carry(C2c[i]), // upper bit
-        .sum(C2b[i]), //lower bit of this
+        .sum(C2bPad[i]), //lower bit of this
         .a(B0Pad[i]),    // input
         .result({LeftCarry[i],LeftBit[i]}) // C is the output wire in the outer module
     );
@@ -286,7 +297,7 @@ module mpadder(
         .carry(MiddleCarryShift[i]), // upper bit
         .sum(MiddleBit[i]), //lower bit of this
         .a(RightBit[i]),    // input
-        .result({C1c[i],C1b[i]}) // C is the output wire in the outer module
+        .result({C1cOut[i],C1bOut[i]}) // C is the output wire in the outer module
     );
     
     
@@ -305,7 +316,7 @@ module mpadder(
     always @(posedge clk)
     begin
        if (~resetn)        upperBitsSubtract<=2'b0;
-       else if (showFluffyPonies == 4'd5 && ~subtract)  upperBitsSubtract <= tempRes[101:100]; //maybe carry_in register could be used
+       else if (showFluffyPonies == 4'd5 && ~subtract)  upperBitsSubtract <= tempRes[102:101]; //maybe carry_in register could be used
        else if (overflow)                  upperBitsSubtract <= upperBitsSubtract_D - 1;
         //actually no overflowwith state register 'r_state_reg' using encoding 'one-hot' in module 'AXI4_S'
 
@@ -319,15 +330,14 @@ module mpadder(
         else upperBitsSubtract_D <= upperBitsSubtract;
     end    
     
-    assign overflow = (~tempRes[100] && showFluffyPonies == 4'd5 && subtract);//actually no overflow
+    assign overflow = (~tempRes[101] && showFluffyPonies == 4'd5 && subtract);//actually no overflow
     
     assign subtract_finished = (upperBitsSubtract_D == 2'b0 && overflow);
     
     
-     assign trueResult = c_regb[511:0]; //we store the to be subtracted value in c_regb, and get our result from there once done   
+     assign trueResult = c_regb[512:1]; //we store the to be subtracted value in c_regb, and get our result from there once done   
 
     assign debugResult = {upperBitsSubtract , result};
-    assign cOne = C2c[1]^C2b[1];
     
 endmodule
 module add3(
