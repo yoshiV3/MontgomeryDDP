@@ -22,7 +22,6 @@ module montgomery(
     wire c_one;
     reg enableC;
     wire carryAdd;
-    wire [513:0] debugResult;
     
     wire [511:0] B0;
     wire [512:0] B1;
@@ -48,7 +47,6 @@ module montgomery(
          .cZero   (c_zero),
          .cOne    (c_one),
          .trueResult   (resultAdd),
-         .debugResult  (debugResult),
          .enableC  (enableC),
          .showFluffyPonies (showFluffyPonies),
          .carry    (carryAdd ));

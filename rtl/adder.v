@@ -13,7 +13,6 @@ module mpadder(
     input  wire         enableC,
     input  wire [3:0]   showFluffyPonies,
     output wire [513:0] trueResult,
-    output wire [513:0] debugResult,
     output wire         cZero,
     output wire         carry, // better name would be subtract_finished
     output wire         cOne
@@ -337,7 +336,7 @@ module mpadder(
     
      assign trueResult = c_regb[512:1]; //we store the to be subtracted value in c_regb, and get our result from there once done   
 
-    assign debugResult = {upperBitsSubtract , result};
+
     
 endmodule
 module add3(
