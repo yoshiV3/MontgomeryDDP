@@ -2,12 +2,7 @@
 
 // TX_SIZE is defined in params.vh
 // It is set to 1024 for 1024-bit wide data transfers between Arm and FPGA
-// If desired, the data width can be set to 512-bit. 
-// It saves a bit: 300 LUTs, and 1000 registers, ...
-// For changing the transfer width, first you have to modify params.vh.
-// Then, you have to execute the following command: source ./tcl/configure.tcl
-// Finally, adapt the C code for that data length.
-// If you are not sure how to do it, please call a TA.
+
 `include "params.vh"
 
 module rsa_wrapper 
@@ -23,11 +18,17 @@ module rsa_wrapper
 
     input                arm_to_fpga_data_valid,
     output               arm_to_fpga_data_ready,
-    input  [TX_SIZE-1:0] arm_to_fpga_data,
+    input  [TX_SIZE-1:0] arm_to_fpga_data_A, 
+    input  [TX_SIZE-1:0] arm_to_fpga_data_x,
+    input  [TX_SIZE-1:0] arm_to_fpga_data_Rsqmodm,
+    input  [TX_SIZE-1:0] arm_to_fpga_data_e,
     
     output               fpga_to_arm_data_valid,
     input                fpga_to_arm_data_ready,
-    output [TX_SIZE-1:0] fpga_to_arm_data,
+    output [TX_SIZE-1:0] fpga_to_arm_data_A,
+    output [TX_SIZE-1:0] fpga_to_arm_data_x,
+    output [TX_SIZE-1:0] fpga_to_arm_data_Rsqmodm,
+    output [TX_SIZE-1:0] fpga_to_arm_data_e,
     
     output [3:0]         leds
 
@@ -36,21 +37,38 @@ module rsa_wrapper
     ////////////// - State Machine 
 
     /// - State Machine Parameters
+    
 
-    localparam STATE_BITS           = 3;    
-    localparam STATE_WAIT_FOR_CMD   = 3'h0;  
-    localparam STATE_READ_DATA      = 3'h1;
-    localparam STATE_COMPUTE        = 3'h2;
-    localparam STATE_WRITE_DATA     = 3'h3;
-    localparam STATE_ASSERT_DONE    = 3'h4;
+    exp exponentiation(.clk    (clk    ),
+                           .resetn (resetn ),
+                           .start  (start  ),
+                           .done   (done   ),
+                           .result (result ),
+                           .in_A   (fpga_to_arm_data_A   ),
+                           .in_x   (fpga_to_arm_data_x   ),
+                           .in_Rsqmodm  (fpga_to_arm_data_Rsamodm   ),
+                           .in_e   (fpga_to_arm_data_e   ));
+
+    localparam STATE_BITS               = 4;    
+    localparam STATE_WAIT_FOR_CMD       = 4'h0;  
+    localparam STATE_READ_DATA_A        = 4'h1;
+    localparam STATE_READ_DATA_x        = 4'h2;
+    localparam STATE_READ_DATA_Rsqmodm = 4'h3;
+    localparam STATE_READ_DATA_e        = 4'h4;
+    localparam STATE_COMPUTE            = 4'h5;
+    localparam STATE_WRITE_DATA         = 4'h6;
+    localparam STATE_ASSERT_DONE        = 4'h7;
     
 
     reg [STATE_BITS-1:0] r_state;
     reg [STATE_BITS-1:0] next_state;
     
-    localparam CMD_READ             = 32'h0;
-    localparam CMD_COMPUTE          = 32'h1;    
-    localparam CMD_WRITE            = 32'h2;
+    localparam CMD_READ_EXP_A             = 32'h0;
+    localparam CMD_READ_EXP_x             = 32'h1;
+    localparam CMD_READ_EXP_Rsqmodm       = 32'h2;
+    localparam CMD_READ_EXP_e             = 32'h3;
+    localparam CMD_COMPUTE_EXP            = 32'h4;    
+    localparam CMD_WRITE_EXP              = 32'h5;
 
     /// - State Transition
 
@@ -65,11 +83,17 @@ module rsa_wrapper
                     begin
                         if (arm_to_fpga_cmd_valid) begin
                             case (arm_to_fpga_cmd)
-                                CMD_READ:
-                                    next_state <= STATE_READ_DATA;
-                                CMD_COMPUTE:                            
+                                CMD_READ_EXP_A:
+                                    next_state <= STATE_READ_DATA_A;
+                                CMD_READ_EXP_x:
+                                    next_state <= STATE_READ_DATA_x;
+                                CMD_READ_EXP_Rsqmodm:
+                                    next_state <= STATE_READ_DATA_Rsqmodm;
+                                CMD_READ_EXP_e:
+                                    next_state <= STATE_READ_DATA_e;                                                                   
+                                CMD_COMPUTE_EXP:                            
                                     next_state <= STATE_COMPUTE;
-                                CMD_WRITE: 
+                                CMD_WRITE_EXP: 
                                     next_state <= STATE_WRITE_DATA;
                                 default:
                                     next_state <= r_state;
@@ -78,7 +102,16 @@ module rsa_wrapper
                             next_state <= r_state;
                     end
 
-                STATE_READ_DATA:
+                STATE_READ_DATA_A:
+                    next_state <= (arm_to_fpga_data_valid) ? STATE_ASSERT_DONE : r_state;
+                    
+                STATE_READ_DATA_x:
+                    next_state <= (arm_to_fpga_data_valid) ? STATE_ASSERT_DONE : r_state;
+                    
+                STATE_READ_DATA_Rsqmodm:
+                    next_state <= (arm_to_fpga_data_valid) ? STATE_ASSERT_DONE : r_state;
+                    
+                STATE_READ_DATA_e:
                     next_state <= (arm_to_fpga_data_valid) ? STATE_ASSERT_DONE : r_state;
                                 
                 STATE_COMPUTE: 
@@ -115,14 +148,25 @@ module rsa_wrapper
         end
         else begin
             case (r_state)
-                STATE_READ_DATA: begin
-                    if (arm_to_fpga_data_valid) core_data <= arm_to_fpga_data;
+                STATE_READ_DATA_A: begin
+                    if (arm_to_fpga_data_valid) core_data <= arm_to_fpga_data_A;
                     else                        core_data <= core_data; 
                 end
-                
+                STATE_READ_DATA_x: begin
+                    if (arm_to_fpga_data_valid) core_data <= arm_to_fpga_data_x;
+                    else                        core_data <= core_data; 
+                end
+                STATE_READ_DATA_Rsqmodm: begin
+                    if (arm_to_fpga_data_valid) core_data <= arm_to_fpga_data_Rsqmodm;
+                    else                        core_data <= core_data; 
+                end
+                STATE_READ_DATA_e: begin
+                    if (arm_to_fpga_data_valid) core_data <= arm_to_fpga_data_e;
+                    else                        core_data <= core_data; 
+                end
                 STATE_COMPUTE: begin
                     // Bitwise-XOR the most signficant 32-bits with 0xDEADBEEF
-                    core_data <= {core_data[TX_SIZE-1:TX_SIZE-32]^32'hDEADBEEF, core_data[TX_SIZE-33:0]};
+                    //TODO
                 end
                 
                 default: begin
@@ -144,7 +188,7 @@ module rsa_wrapper
 
     always @(posedge(clk)) begin
         r_fpga_to_arm_data_valid = (r_state==STATE_WRITE_DATA);
-        r_arm_to_fpga_data_ready = (r_state==STATE_READ_DATA);
+        r_arm_to_fpga_data_ready = (r_state==STATE_READ_DATA_A || r_state==STATE_READ_DATA_x || r_state==STATE_READ_DATA_Rsqmodm || r_state==STATE_READ_DATA_e);
     end
     
     assign fpga_to_arm_data_valid = r_fpga_to_arm_data_valid;
