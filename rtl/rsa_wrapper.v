@@ -2,16 +2,10 @@
 
 // TX_SIZE is defined in params.vh
 // It is set to 1024 for 1024-bit wide data transfers between Arm and FPGA
-// If desired, the data width can be set to 512-bit. 
-// It saves a bit: 300 LUTs, and 1000 registers, ...
-// For changing the transfer width, first you have to modify params.vh.
-// Then, you have to execute the following command: source ./tcl/configure.tcl
-// Finally, adapt the C code for that data length.
-// If you are not sure how to do it, please call a TA.
-`include "params.vh"
 
-module rsa_wrapper 
-(
+module rsa_wrapper #(
+    parameter TX_SIZE = 1024
+)(
     // The clock and active low reset
     input                clk,
     input                resetn,
@@ -36,21 +30,49 @@ module rsa_wrapper
     ////////////// - State Machine 
 
     /// - State Machine Parameters
+    
+    reg start_exp;
+    reg done_exp;
+    reg result_exp;
+    exp exponentiation(.clk    (clk    ),
+                           .resetn      (resetn ),
+                           .start       (start_exp  ),
+                           .done        (done_exp   ),
+                           .result      (result_exp ),
+                           .in_A        (fpga_to_arm_data ),
+                           .in_x        (fpga_to_arm_data ),
+                           .in_Rsqmodm  (fpga_to_arm_data ),
+                           .in_e        (fpga_to_arm_data ));
+    
+    reg start_mont;
+    reg result_mont;
+    reg done_mont;
+    montgomery montgomery_instance( .clk    (clk    ),
+                                                               .resetn (resetn ),
+                                                               .start  (start_mont  ),
+                                                               .in_a   (fpga_to_arm_data   ),
+                                                               .in_b   (fpga_to_arm_data   ),
+                                                               .in_m   (fpga_to_arm_data   ),
+                                                               .result (result_mont ),
+                                                               .done   (done_mont   ));
 
-    localparam STATE_BITS           = 3;    
-    localparam STATE_WAIT_FOR_CMD   = 3'h0;  
-    localparam STATE_READ_DATA      = 3'h1;
-    localparam STATE_COMPUTE        = 3'h2;
-    localparam STATE_WRITE_DATA     = 3'h3;
-    localparam STATE_ASSERT_DONE    = 3'h4;
+
+    localparam STATE_BITS               = 4;
+    localparam STATE_WAIT_FOR_CMD       = 4'h0;
+    localparam STATE_READ_DATA          = 4'h1;
+    localparam STATE_COMPUTE_EXP        = 4'h2; 
+    localparam STATE_COMPUTE_MONT       = 4'h3;  
+    localparam STATE_WRITE_DATA         = 4'h4;
+    localparam STATE_ASSERT_DONE        = 4'h5;
     
 
     reg [STATE_BITS-1:0] r_state;
     reg [STATE_BITS-1:0] next_state;
     
-    localparam CMD_READ             = 32'h0;
-    localparam CMD_COMPUTE          = 32'h1;    
-    localparam CMD_WRITE            = 32'h2;
+    localparam CMD_READ_EXP               = 32'h0;
+    localparam CMD_COMPUTE_EXP            = 32'h1;
+    localparam CMD_COMPUTE_MONT           = 32'h3;
+    localparam CMD_WRITE_EXP              = 32'h4;
 
     /// - State Transition
 
@@ -65,11 +87,13 @@ module rsa_wrapper
                     begin
                         if (arm_to_fpga_cmd_valid) begin
                             case (arm_to_fpga_cmd)
-                                CMD_READ:
-                                    next_state <= STATE_READ_DATA;
-                                CMD_COMPUTE:                            
-                                    next_state <= STATE_COMPUTE;
-                                CMD_WRITE: 
+                                CMD_READ_EXP:
+                                    next_state <= STATE_READ_DATA;                                                                   
+                                CMD_COMPUTE_EXP:                            
+                                    next_state <= STATE_COMPUTE_EXP;
+                                CMD_COMPUTE_MONT:                            
+                                    next_state <= STATE_COMPUTE_MONT;
+                                CMD_WRITE_EXP: 
                                     next_state <= STATE_WRITE_DATA;
                                 default:
                                     next_state <= r_state;
@@ -80,8 +104,11 @@ module rsa_wrapper
 
                 STATE_READ_DATA:
                     next_state <= (arm_to_fpga_data_valid) ? STATE_ASSERT_DONE : r_state;
-                                
-                STATE_COMPUTE: 
+                           
+                STATE_COMPUTE_EXP: 
+                    next_state <= STATE_ASSERT_DONE;
+                    
+                STATE_COMPUTE_MONT: 
                     next_state <= STATE_ASSERT_DONE;
 
                 STATE_WRITE_DATA:
@@ -119,12 +146,16 @@ module rsa_wrapper
                     if (arm_to_fpga_data_valid) core_data <= arm_to_fpga_data;
                     else                        core_data <= core_data; 
                 end
-                
-                STATE_COMPUTE: begin
-                    // Bitwise-XOR the most signficant 32-bits with 0xDEADBEEF
-                    core_data <= {core_data[TX_SIZE-1:TX_SIZE-32]^32'hDEADBEEF, core_data[TX_SIZE-33:0]};
+                STATE_COMPUTE_EXP: begin
+                    start_exp <= 1'b1;
+                    wait (done_exp==1);
+                    core_data <=result_exp;
+                end 
+                STATE_COMPUTE_MONT: begin
+                    start_mont <= 1'b1;
+                    wait (done_mont==1);
+                    core_data <=result_mont;                                   
                 end
-                
                 default: begin
                     core_data <= core_data;
                 end
@@ -133,7 +164,7 @@ module rsa_wrapper
         end
     end
     
-    assign fpga_to_arm_data       = core_data;
+    assign fpga_to_arm_data    = core_data;
 
     ////////////// - Valid signals for notifying that the computation is done
 
