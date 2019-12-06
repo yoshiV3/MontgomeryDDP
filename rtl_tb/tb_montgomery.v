@@ -56,7 +56,7 @@ module tb_montgomery();
          $display("start the madness");
         start<=1;
         #`CLK_PERIOD;
-        #`CLK_PERIOD;
+        //#`CLK_PERIOD;
         start<=0;
         
          $display("waiting till done");
