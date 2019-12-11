@@ -8,18 +8,20 @@ module exponentiation(
     input [511:0] modulus,
     input [511:0] Rmodm, // We assume these stick around for at least the first state
     input [511:0] Rsquaredmodm,
-    input [1023:0] exponent,
+    input [511:0] exponent,
     input [511:0] x,
     output done,
     output [511:0] A_result
     );
-    reg          resetnMont;
+    wire          resetnMont;
     reg          start;
     wire  [511:0] in_a;
     wire  [511:0] in_b;
     wire  [511:0] in_m;
     wire [511:0] result;
     wire montgomeryDone;
+    
+    assign in_m = modulus;
     
     
     
@@ -33,7 +35,7 @@ module exponentiation(
     else if (A_en)
         if (A_Rmodm == 1'b1)
             A <= Rmodm;
-        else
+        else if (montgomeryDone)
             A <= result;    
     end
     
@@ -48,11 +50,27 @@ module exponentiation(
     else if (xDash_en)
         xDash <= result;
     end
+    
+    
+    reg startMont;
+    always @(posedge clk)
+    begin
+        if (~resetn)
+            startMont <= 1'b0;
+        else if (start)
+            startMont <= 1'b1;
+        else
+            startMont <= 1'b0;
+    end
+    
+    assign resetnMont = resetn && (~start || startMont); // reset if resetn is 0 or if start and not startMont yet
+    // resetnMont is negative
+    
   
     
      montgomery montgomery_instance( .clk    (clk      ),
                                     .resetn (resetnMont   ),
-                                    .start  (start    ),
+                                    .start  (startMont    ),
                                     .in_a   (in_a     ),
                                     .in_b   (in_b     ),
                                     .in_m   (in_m     ),
@@ -78,12 +96,12 @@ module exponentiation(
     
     
     
-    reg countup_en;
-    reg [9:0] count;
+    
+    reg [8:0] count;
     always @(posedge clk)
     begin
         if(~resetn)
-            count <= 10'b0;
+            count <= 9'b0;
         else if (shift)
             count <= count + 1;
     end
@@ -94,19 +112,19 @@ module exponentiation(
     
     
     reg exponent_en;
-    reg [1023:0] exponent_reg;
+    reg [511:0] exponent_reg;
     reg exponent_shift;
     always @(posedge clk)
     begin
         if(~resetn)
-            exponent_reg <= 10'b0;
+            exponent_reg <= 9'b0;
         else if (exponent_en)
             exponent_reg <= exponent;
         else if (shift)
-            exponent_reg <= {exponent_reg[1022:0], 1'b0};
+            exponent_reg <= {exponent_reg[510:0], 1'b0};
     end
     
-    assign eZero = exponent_reg[1023];
+    assign eZero = exponent_reg[511];
     assign shift = exponent_shift || (initial_shift && ~eZero);
 
     
@@ -133,10 +151,10 @@ module exponentiation(
             begin
                 exponent_en <= 1'b1;
                 initial_shift <= 1'b1;
-                A_en <= 1'b0;
-                A_Rmodm <= 1'b0;
+                A_en <= 1'b1;
+                A_Rmodm <= 1'b1;
                 xDash_en <= 1'b0;
-                select_a <= 1'b0;
+                select_a <= 1'b1;
                 select_b <= 2'd0;
             end
         
@@ -145,9 +163,9 @@ module exponentiation(
                 exponent_en <= 1'b0;
                 initial_shift <= 1'b1;
                 A_en <= 1'b1;
-                A_Rmodm <= 1'b1;
+                A_Rmodm <= 1'b0;
                 xDash_en <= 1'b1;
-                select_a <= 1'b0;
+                select_a <= 1'b1;
                 select_b <= 2'd0;            
             end
         
@@ -158,7 +176,7 @@ module exponentiation(
                 A_en <= 1'b1;
                 A_Rmodm <= 1'b0;
                 xDash_en <= 1'b0;
-                select_a <= 1'b1;
+                select_a <= 1'b0;
                 select_b <= 2'd1;            
             end
             
@@ -169,7 +187,7 @@ module exponentiation(
                 A_en <= 1'b1;
                 A_Rmodm <= 1'b0;
                 xDash_en <= 1'b0;
-                select_a <= 1'b1;
+                select_a <= 1'b0;
                 select_b <= 2'd2;            
             end
             
@@ -180,7 +198,7 @@ module exponentiation(
                 A_en <= 1'b1;
                 A_Rmodm <= 1'b0;
                 xDash_en <= 1'b0;
-                select_a <= 1'b1;
+                select_a <= 1'b0;
                 select_b <= 2'd3;            
             end
             
@@ -222,7 +240,7 @@ module exponentiation(
     else if (state == 3'd1)
     begin
         exponent_shift <= 1'b0;
-        if (~montgomeryDone)
+        if (~(montgomeryDone && eZero))
             begin
             start <= 1'b1;
             nextstate <= 3'd1;
@@ -241,7 +259,7 @@ module exponentiation(
             nextstate <= 3'd2;
             exponent_shift <= 1'b0;
             end
-        else if (count == 10'd1023)
+        else if (count == 9'd511)
             begin
             start <= 1'b0;
             nextstate <= 3'd4;
@@ -268,7 +286,7 @@ module exponentiation(
             nextstate <= 3'd3;
             exponent_shift <= 1'b0;
             end
-        else if (count == 10'd1023)
+        else if (count == 9'd511)
             begin
             start <= 1'b0;
             exponent_shift <= 1'b0;
