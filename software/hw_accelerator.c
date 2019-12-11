@@ -6,9 +6,12 @@
 
 // Note that these tree CMDs are same as
 // they are defined in montgomery_wrapper.v
-#define CMD_READ    0
-#define CMD_COMPUTE 1
-#define CMD_WRITE   2
+#define CMD_READ_EXP                0;
+#define CMD_READ_A_B_MONT           1;
+#define CMD_READ_M_MONT             2;
+#define CMD_COMPUTE_EXP             3;
+#define CMD_COMPUTE_MONT            4;
+#define CMD_WRITE                   5;
 
 void init_HW_access(void)
 {
@@ -76,4 +79,10 @@ STOP_TIMING
 	xil_printf("Printing the output data\n\r");
 
 	print_array_contents(src);
+}
+
+
+void calculateSmallCipherTexts_HW_accelerator(void)
+{
+
 }
