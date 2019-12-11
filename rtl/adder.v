@@ -8,7 +8,7 @@ module mpadder(
     input  wire [512:0] B1,
     input  wire [511:0] M0,
     input  wire [512:0] M1,
-    input  wire [513:0] subtraction, //now only for the subtract
+    input  wire [512:0] subtraction, //now only for the subtract
     input  wire         c_doubleshift,
     input  wire         enableC,
     input  wire [3:0]   showFluffyPonies,
@@ -85,7 +85,7 @@ module mpadder(
      reg  [102:0] result_regTwo;
      reg  [102:0] result_regThree;
      reg  [102:0] result_regFour;
-     reg  [99:0] result_regFive;
+     reg  [100:0] result_regFive;
 
      
      wire   resultOne_en ;  

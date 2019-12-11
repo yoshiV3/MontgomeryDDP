@@ -14,9 +14,7 @@ module montgomery(
  
     reg     startAdd;
     reg     subtract;
-    wire[513:0] in_AddA;
     reg [3:0] showFluffyPonies;
-    wire doneAdd;
     wire[513:0] resultAdd;
     wire c_zero;
     wire c_one;
@@ -184,20 +182,20 @@ module montgomery(
                
               end
         // firsrt state
-          else if(state == 4'd1)       
-              begin
-               regM_en     <= 1'b1;
-               regB_en     <= 1'b1;
-               regA_en     <= 1'b1;
-               regA_sh     <= 1'b0;
-               startAdd    <= 1'b0;
-               subtract    <= 1'b0;
-               enableC     <= 1'b0;
-               reset       <= 1'b0;
-               countEn     <= 1'b0;
-               showFluffyPonies <= 4'd8;
-               C_doubleshift <= 1'b0;
-              end  
+//          else if(state == 4'd1)       
+//              begin
+//               regM_en     <= 1'b1;
+//               regB_en     <= 1'b1;
+//               regA_en     <= 1'b1;
+//               regA_sh     <= 1'b0;
+//               startAdd    <= 1'b0;
+//               subtract    <= 1'b0;
+//               enableC     <= 1'b0;
+//               reset       <= 1'b0;
+//               countEn     <= 1'b0;
+//               showFluffyPonies <= 4'd8;
+//               C_doubleshift <= 1'b0;
+//              end  
 //          else if(state == 4'd2)       
 //              begin
 //               regM_en     <= 1'b0;
