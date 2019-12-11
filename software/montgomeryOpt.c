@@ -15,15 +15,6 @@
 
 
 
-void customprint2(uint32_t *in, char *str, uint32_t size)        {
-    int32_t i;
-
-    xil_printf("0x");
-    for (i = size-1; i >= 0 ; i--) {
-        xil_printf("%9x", in[i]);
-    }
-    xil_printf("\n\r");
-}
 //Add C to t array, starting from element i.
 void customAddOpt(uint32_t *t,uint32_t i, uint32_t C){
     uint64_t sum;
