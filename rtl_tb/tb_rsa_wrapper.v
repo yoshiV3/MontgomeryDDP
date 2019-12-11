@@ -146,13 +146,15 @@ module tb_rsa_wrapper();
     endtask
 
 
-       
     localparam CMD_READ_EXP               = 32'h0;
     localparam CMD_READ_A_B_MONT          = 32'h1;
     localparam CMD_READ_M_MONT            = 32'h2;
     localparam CMD_COMPUTE_EXP            = 32'h3;
     localparam CMD_COMPUTE_MONT           = 32'h4;
-    localparam CMD_WRITE                  = 32'h5;
+    localparam CMD_READ_EXP_MOD_RMOD      = 32'h5;
+    localparam CMD_READ_EXP_RSQ_EXP       = 32'h6;
+    localparam CMD_READ_EXP_X             = 32'h7;
+    localparam CMD_WRITE_EXP              = 32'h8;
 
     
     initial begin
