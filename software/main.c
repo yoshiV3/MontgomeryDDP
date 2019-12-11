@@ -26,6 +26,7 @@ extern uint32_t M[32],
 				R2_1024[32],
 				One[32] ;
 
+void customprint(uint32_t *in, char *str, uint32_t size);
 
 int main()
 {
@@ -53,5 +54,25 @@ int main()
 //    cleanup_platform();
 
 
+	uint32_t aCapital[32];
+	exponentation(M, R_1024, R2_1024, e,e_len, N,N_prime,aCapital, 32);
+	customprint(aCapital, "Resultaat", 32);
     return 0;
 }
+
+
+
+
+
+
+
+void customprint(uint32_t *in, char *str, uint32_t size)        {
+    int32_t i;
+
+    xil_printf("0x");
+    for (i = size-1; i >= 0 ; i--) {
+        xil_printf("%9x", in[i]);
+    }
+    xil_printf("\n\r");
+}
+
