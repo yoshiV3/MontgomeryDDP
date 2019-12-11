@@ -11,6 +11,19 @@
 #include "asm_montgomeryOpt.h"
 #include "string.h"
 
+
+
+
+
+void customprint2(uint32_t *in, char *str, uint32_t size)        {
+    int32_t i;
+
+    xil_printf("0x");
+    for (i = size-1; i >= 0 ; i--) {
+        xil_printf("%9x", in[i]);
+    }
+    xil_printf("\n\r");
+}
 //Add C to t array, starting from element i.
 void customAddOpt(uint32_t *t,uint32_t i, uint32_t C){
     uint64_t sum;
@@ -37,7 +50,7 @@ void condSubtractOpt(uint32_t *n, uint32_t *res, uint32_t *t_prime, uint32_t siz
                 negative_carry = 1;
             }
         }
-    if (negative_carry==1 && t_prime[size] == 0) { //b is greater than a
+    if (negative_carry==1 && t_prime[size] == 0) { //b is greatxil_printf("\n\r");er than a
         for (i=0; i < size; i++) {
             res[i] = t_prime[i];
         }
@@ -146,21 +159,23 @@ void exponentation(uint32_t *x, uint32_t *r, uint32_t *r2, uint32_t *e,uint32_t 
 	uint32_t xThilde[32];
 	uint32_t block;
 	uint32_t shifter;
+//	uint32_t One[32] = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1};
 	uint32_t One[32] = {1,0};
-	int
+	uint8_t i;
+	uint32_t t;
 	montMulOpt(x,r2,n,n_prime,xThilde,size);
 	for (i=0; i<size; i++){
 		aCapital[i] = r[i];
 	}
-	for(t = el; i > 0; i--){
+	for(t = el; t > 0; t--){
 		montMulOpt(aCapital,aCapital,n,n_prime,aCapital,size);
-		block = i/size;
-		shifter = el%size;
-		if ((e[block] >> shifter) & 1 == 1){
+		block = t/size;
+		shifter = t%size -1;
+		if (((e[block] >> shifter) & 1) == 1){
 			montMulOpt(aCapital,xThilde,n,n_prime,aCapital,size);
 		}
 	}
-	montMulOpt(aCapital,One,n,n_prime,aCapital,size);
+	montMulOpt(One,aCapital,n,n_prime,aCapital,size);
 }
 
 
