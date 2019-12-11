@@ -63,7 +63,6 @@ module tb_expontation();
         start <= 1'b1;
         #`CLK_PERIOD;
         wait (done==1);
-        #`CLK_PERIOD;
         start <= 1'b1;
         $display("result calculated=%x", result);
         $display("result expected  =%x", expected);
