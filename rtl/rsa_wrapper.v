@@ -38,6 +38,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     reg [511:0]in_Rsqmodm;
     reg [511:0]in_exp;
     reg [511:0]in_x;
+    /*
     exponentiation exponentiation(     .clk        (clk    ),
                            .resetn      (resetn_exp ),
                            .startExponentiation       (start_exp  ),
@@ -48,7 +49,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                            .x           (in_x),
                            .done        (done_exp   ),
                            .A_result    (result_exp));
-    
+    */
     reg start_mont;
     reg resetn_mont;
     wire [511:0]result_mont;
