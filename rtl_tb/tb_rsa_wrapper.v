@@ -154,8 +154,8 @@ module tb_rsa_wrapper();
     localparam CMD_READ_EXP_MOD_RMOD      = 32'h5;
     localparam CMD_READ_EXP_RSQ_EXP       = 32'h6;
     localparam CMD_READ_EXP_X             = 32'h7;
-    localparam CMD_WRITE_EXP              = 32'h8;
-
+    localparam CMD_WRITE                  = 32'h8;
+    localparam CMD_RESET_MONT             = 32'h9;
     
     initial begin
 
@@ -163,8 +163,8 @@ module tb_rsa_wrapper();
         
         // Your task: 
         // Design a testbench to test your accelerator using the tasks defined above: send_cmd_to_hw, send_data_to_hw, read_data_from_hw, waitdone
-        input_data_a_and_b <= 1024'h12887b21d93a10f35511c8d56264a6f95f0245d8004e0d3557c7ec2b396b4ed3cabda34f88e0c8154e9ffab2761e626a720eef1da7ee31ce6c31fcdeaec38eb9589901702c94e8d7f3c733aafa46a6b43948148fd2f08761b134bc6815c3a69f4fc4ca4cbec55a2e1e70178549683bf79db5fec9631717e6ae69a5ea5c9eb2a118d;
-        input_data_m       <=  1024'hf8f635bfae6507fc726853e48b8ff18f8037f58fbef63debba0381f2a7da936679f14a270b1129a730d905d283459a275b4dd75470965dfa6386b5321563997d;
+        input_data_a_and_b <= 1024'h87b21d93a10f35511c8d56264a6f95f0245d8004e0d3557c7ec2b396b4ed3cabda34f88e0c8154e9ffab2761e626a720eef1da7ee31ce6c31fcdeaec38eb9589901702c94e8d7f3c733aafa46a6b43948148fd2f08761b134bc6815c3a69f4fc4ca4cbec55a2e1e70178549683bf79db5fec9631717e6ae69a5ea5c9eb2a118d;
+        input_data_m       <=  1024'h0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f8f635bfae6507fc726853e48b8ff18f8037f58fbef63debba0381f2a7da936679f14a270b1129a730d905d283459a275b4dd75470965dfa6386b5321563997d;
         
 
         #`CLK_PERIOD;
