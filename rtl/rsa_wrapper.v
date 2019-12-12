@@ -31,6 +31,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     
     reg start_exp;
     wire done_exp;
+    reg resetn_exp;
     wire [511:0]result_exp;
     reg [511:0]in_modulus;
     reg [511:0]in_Rmodm;
@@ -38,7 +39,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     reg [511:0]in_exp;
     reg [511:0]in_x;
     exponentiation exponentiation(     .clk        (clk    ),
-                           .resetn      (resetn ),
+                           .resetn      (resetn_exp ),
                            .startExponentiation       (start_exp  ),
                            .modulus     (in_modulus),
                            .Rmodm       (in_Rmodm),
@@ -49,13 +50,14 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                            .A_result    (result_exp));
     
     reg start_mont;
+    reg resetn_mont;
     wire [511:0]result_mont;
     wire done_mont;
     reg [511:0]in_a;
     reg [511:0]in_b;
     reg [511:0]in_m;
     montgomery montgomery_instance(     .clk    (clk      ),
-                                        .resetn (resetn   ),
+                                        .resetn (resetn_mont  ),
                                         .start  (start_mont    ),
                                         .in_a   (in_a     ),
                                         .in_b   (in_b ),
@@ -75,7 +77,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     localparam STATE_READ_DATA_MOD_RMOD  = 4'h8;
     localparam STATE_READ_DATA_EXP_RSQ_EXP = 4'h9;
     localparam STATE_READ_DATA_X         =4'ha;
-    
+    localparam STATE_RESET_MONT          =4'hb;
 
     reg [STATE_BITS-1:0] r_state;
     reg [STATE_BITS-1:0] next_state;
@@ -89,6 +91,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     localparam CMD_READ_EXP_RSQ_EXP       = 32'h6;
     localparam CMD_READ_EXP_X             = 32'h7;
     localparam CMD_WRITE_EXP              = 32'h8;
+    localparam CMD_RESET_MONT             = 32'h9;
     /// - State Transition
 
     always @(*)
@@ -118,6 +121,8 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                                     next_state <= STATE_COMPUTE_MONT;
                                 CMD_WRITE_EXP: 
                                     next_state <= STATE_WRITE_DATA;
+                                CMD_RESET_MONT:
+                                    next_state <= STATE_RESET_MONT;
                                 default:
                                     next_state <= r_state;
                             endcase
@@ -140,13 +145,14 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                     
                 STATE_COMPUTE_MONT:
                     next_state <= (done_mont) ? STATE_ASSERT_DONE : r_state;
-
+                    
                 STATE_WRITE_DATA:
                     next_state <= (fpga_to_arm_data_ready) ? STATE_ASSERT_DONE : r_state;
 
                 STATE_ASSERT_DONE:
                     next_state <= (fpga_to_arm_done_read) ? STATE_WAIT_FOR_CMD : r_state;
-
+                STATE_RESET_MONT:
+                    next_state <= STATE_ASSERT_DONE;
                 default:
                     next_state <= STATE_WAIT_FOR_CMD;
 
@@ -169,12 +175,18 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     always @(posedge(clk)) begin
         if (resetn==1'b0) begin
             core_data <= 1024'b0;
+            resetn_mont <= 1'b0;
+            resetn_exp  <= 1'b0;
         end
         else begin
             case (r_state)
+            
                 STATE_READ_DATA_A_AND_B: begin
-                    if (arm_to_fpga_data_valid)begin in_a <= arm_to_fpga_data[511:0];
-                                                in_b <= arm_to_fpga_data[1023:512]; end
+                    resetn_mont <= 1'b1;
+                    if (arm_to_fpga_data_valid)begin 
+                                                in_a <= arm_to_fpga_data[1023:512]; 
+                                                in_b <= arm_to_fpga_data[511:0];
+                                                end
                     else
                         core_data <= core_data;
                      
@@ -186,15 +198,16 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                 end
                 
                 STATE_READ_DATA_MOD_RMOD: begin
-                    if (arm_to_fpga_data_valid)begin in_modulus <= arm_to_fpga_data[511:0];
-                                                in_Rmodm <= arm_to_fpga_data[1023:512]; end
+                    resetn_exp <= 1'b1;
+                    if (arm_to_fpga_data_valid)begin in_Rmodm <= arm_to_fpga_data[511:0];
+                                                in_modulus <= arm_to_fpga_data[1023:512]; end
                     else
                         core_data <= core_data;
                 end
                 
                 STATE_READ_DATA_EXP_RSQ_EXP: begin
-                    if (arm_to_fpga_data_valid)begin in_Rsqmodm <= arm_to_fpga_data[511:0];
-                                                in_exp <= arm_to_fpga_data[1023:512]; end
+                    if (arm_to_fpga_data_valid)begin in_exp <= arm_to_fpga_data[511:0];
+                                                in_Rsqmodm <= arm_to_fpga_data[1023:512]; end
                     else
                         core_data <= core_data;
                 end
@@ -215,6 +228,10 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                     start_mont <= 1'b1;
                     core_data <=result_mont;                             
                 end
+                STATE_RESET_MONT: begin
+                    resetn_mont <= 1'b0;
+                    resetn_exp  <= 1'b0;
+                    end
                 default: begin
                     core_data <= core_data;
                 end
