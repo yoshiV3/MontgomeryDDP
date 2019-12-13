@@ -12,7 +12,7 @@ module tb_expontation();
     reg [511:0] in_m;
     reg [511:0] Rmodm; // We assume these stick around for at least the first state
     reg [511:0] Rsquaredmodm;
-    reg [1023:0] in_e;
+    reg [511:0] in_e;
     reg [511:0] in_x;
     wire done;
     wire [511:0] result;
