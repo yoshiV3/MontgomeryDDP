@@ -41,7 +41,7 @@ void condSubtractOpt(uint32_t *n, uint32_t *res, uint32_t *t_prime, uint32_t siz
                 negative_carry = 1;
             }
         }
-    if (negative_carry==1 && t_prime[size] == 0) { //b is greatxil_printf("\n\r");er than a
+    if (negative_carry==1 && t_prime[size] == 0) { //xil_printf("Computed");b is greatxil_printf("\n\r");er than a
         for (i=0; i < size; i++) {
             res[i] = t_prime[i];
         }

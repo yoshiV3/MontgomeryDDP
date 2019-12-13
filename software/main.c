@@ -50,11 +50,25 @@ int main()
 //
 //
 
-
-
-	uint32_t aCapital[32];
-	exponentation(M, R_1024, R2_1024, e,e_len, N,N_prime,aCapital, 32);
-	customprint(aCapital, "Resultaat", 32);
+	uint32_t c[32];
+	exponentation(M, R_1024, R2_1024, e,e_len, N,N_prime,c, 32);
+	customprint(c, "Result", 32);
+	uint32_t ch[16];
+	uint32_t cl[16];
+	uint32_t cp[16];
+	uint32_t cq[16];
+	 uint8_t i;
+	for(i=0; i<16;i++)
+	{
+		ch[15-i] = c[16+i];
+		cl[i] = c[i];
+	}
+	xil_printf("reduction");
+	calculateSmallCipherTexts_HW_accelerator(ch,cl,p,R2p,cp);
+	calculateSmallCipherTexts_HW_accelerator(ch,cl,q,R2q,cq);
+	xil_printf("reduction results");
+	customprint(cp,"h",16);
+	customprint(cq,"h",16);
 
 	xil_printf("End\n\r");
 
