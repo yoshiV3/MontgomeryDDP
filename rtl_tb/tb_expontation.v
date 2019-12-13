@@ -63,13 +63,21 @@ module tb_expontation();
 //        Rsquaredmodm <=  512'h733f6233b70f1ff7bc7ea9a38d69c2d083bec7c1d73000a3c36a6b4699300aff43a2c4da76786ac6878e16ad896b861ad351008baa901886630148792eca57ad;
 //        multiply     <= 1'b0;
         
-        in_x         <=  512'hcc3abd06ff8100f135535b982344d1ae1abc9c78b05ceb6e8fde131f23ea03704f6b1d7cf231b13d43692d0b5e01f829bc48e383bd046aeaddb63768c405987d;
-        in_e         <=  512'haf;
-        in_m         <=  512'ha1223da67930dd73e1dd07fee62e4bfad65059e30de1fdd96f95e899de1604259a13b36f8a8f19f661b3ab0ac0e49eeaebc73f9c2c8ba9b0b5d635816d379c4d;
-        expected     <=  512'h5764fd9614a860b0f2e8015678119047e8c22124a441e9db6ede6e177fc5173d09cd96258a3c317f5a3c3ef9d86b96cc9e3fa154b238d3abd80dc2a35f22cdec;
-        Rmodm        <=  512'h2685de77f54c47a97e109e9d8cd0032c30cfc67dffba9708045dc2f2bee312bf7f02a98103286c4cf76c908add152c3ac527fbbf122aff776ca2d5c26463a77b;
-        Rsquaredmodm <=  512'hd26eb20cba1484f9e844b8a13fccb76b56f7cf02e6192d787c56da163d6dbb9f43fbfc0a4d4be1a7303806455a605906ad14cab5d7f5ba375ff7466b3e2681ab;
-        multiply     <= 1'b1;        
+        in_x         <=  512'h88583ec8b11db437837fe11aca3e7648c6d88dade783e643465a82a3294e190b1872bc8499caf3e87fd9b9ff5b6a839f65201df4978f53c298c8f398a32bdf2b;
+        in_e         <=  512'ha0;
+        in_m         <=  512'hb7ae940f1e537437f19175d5a1197cfb9d009d3565e73859fdd404143ce6d2f593ec6637b79d898f8b03cfd0c12102f8b5cddb6bc165d89bd2c5dd8e568aee41;
+        expected     <=  512'h37f02a691202d1a986b8ac06bd4d8426efa8ec376d04b87a607d229c21a68587d0ffc07d00b6cda51385a7d9c29d33692085222a85aee0bba532d7734b311bd9;
+        Rmodm        <=  512'h48516bf0e1ac8bc80e6e8a2a5ee6830462ff62ca9a18c7a6022bfbebc3192d0a6c1399c84862767074fc302f3edefd074a3224943e9a27642d3a2271a97511bf;
+        Rsquaredmodm <=  512'h155d47fe104ed2ef3e84d1c3b0b8717bf0a84c9957df2530bbdc7e08a6f19f5b80648cb698d73aecb9286eff39eac78f6584b1355de50bc3ce6ef056715d73fa;
+        multiply     <= 1'b0;
+        
+//        in_x         <=  512'hcc3abd06ff8100f135535b982344d1ae1abc9c78b05ceb6e8fde131f23ea03704f6b1d7cf231b13d43692d0b5e01f829bc48e383bd046aeaddb63768c405987d;
+//        in_e         <=  512'haf;
+//        in_m         <=  512'ha1223da67930dd73e1dd07fee62e4bfad65059e30de1fdd96f95e899de1604259a13b36f8a8f19f661b3ab0ac0e49eeaebc73f9c2c8ba9b0b5d635816d379c4d;
+//        expected     <=  512'h5764fd9614a860b0f2e8015678119047e8c22124a441e9db6ede6e177fc5173d09cd96258a3c317f5a3c3ef9d86b96cc9e3fa154b238d3abd80dc2a35f22cdec;
+//        Rmodm        <=  512'h2685de77f54c47a97e109e9d8cd0032c30cfc67dffba9708045dc2f2bee312bf7f02a98103286c4cf76c908add152c3ac527fbbf122aff776ca2d5c26463a77b;
+//        Rsquaredmodm <=  512'hd26eb20cba1484f9e844b8a13fccb76b56f7cf02e6192d787c56da163d6dbb9f43fbfc0a4d4be1a7303806455a605906ad14cab5d7f5ba375ff7466b3e2681ab;
+//        multiply     <= 1'b1;        
         #`CLK_PERIOD;
         start <= 1'b1;
         #`CLK_PERIOD;
