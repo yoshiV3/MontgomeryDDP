@@ -10,7 +10,7 @@ module mpadder(
     input  wire [512:0] M1,
     input  wire [512:0] subtraction, //now only for the subtract
     input  wire         c_doubleshift,
-    input  wire         enableC,
+    //input  wire         enableC,
     input  wire [3:0]   showFluffyPonies,
     output wire [513:0] trueResult,
     output wire         cZero,
@@ -38,7 +38,7 @@ module mpadder(
      begin
          if(~resetn)         c_regb <= 514'd0;
          else if (c_doubleshift)   c_regb <= {1'b0,C1bOut[514:2]}; //We only shift once now
-         else if (c_enable)  c_regb <= C1bOut[513:0];
+         //else if (c_enable)  c_regb <= C1bOut[513:0];
          else if (subtract && showFluffyPonies == 4'b0)  c_regb <= {1'b0, result};
      end
      
@@ -53,12 +53,12 @@ module mpadder(
      begin
          if(~resetn)         c_regc <= 515'd0;
          else if (c_doubleshift)   c_regc <= {1'b0,C1cOut[514:1]}; //one shift because the other shift is done in the adder by starting at 0
-         else if (c_enable)  c_regc <= C1cOut;
+         //else if (c_enable)  c_regc <= C1cOut;
      end
      
      
 
-     assign c_enable = enableC;
+     //assign c_enable = enableC;
      assign C2b = c_regb;
      assign C2c = c_regc;
      //assign cZero = C2b[0]^C2c[0];This will always be 0
@@ -351,12 +351,7 @@ module add3(
     assign upper = (carry && sum) || (carry && a) || (a && sum);
     assign lower = carry ^ sum ^ a;
     
-//    reg [1:0] C;
-//    always @(posedge clk)
-//    begin
-//        if (~ resetn)   C <= 2'b0;
-//        else if (enableC) C <= {upper, lower};
-//     end
+
      assign result = {upper, lower};
      
     endmodule

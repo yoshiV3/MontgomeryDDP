@@ -18,7 +18,7 @@ module montgomery(
     wire[513:0] resultAdd;
     wire c_zero;
     wire c_one;
-    reg enableC;
+    //reg enableC;
     wire carryAdd;
     
     wire [511:0] B0;
@@ -45,7 +45,7 @@ module montgomery(
          .cZero   (c_zero),
          .cOne    (c_one),
          .trueResult   (resultAdd),
-         .enableC  (enableC),
+         //.enableC  (enableC),
          .showFluffyPonies (showFluffyPonies),
          .carry    (carryAdd ));
     // 2. Use the Adder to implement the Montgomery multiplier in hardware.
@@ -174,7 +174,7 @@ module montgomery(
                regA_sh     <= 1'b0;
                startAdd    <= 1'b0;
                subtract    <= 1'b0;
-               enableC     <= 1'b0;
+               //enableC     <= 1'b0;
                reset       <= 1'b1;
                countEn     <= 1'b0;
                showFluffyPonies <= 4'd8;
@@ -219,7 +219,7 @@ module montgomery(
                regA_sh     <= 1'b1; //We shift every cycle
                startAdd    <= 1'b1;
                subtract    <= 1'b0;
-               enableC     <= 1'b1;
+               //enableC     <= 1'b1;
                reset       <= 1'b0;
                countEn     <= 1'b1;
                showFluffyPonies <= 4'd8;
@@ -263,7 +263,7 @@ module montgomery(
                regA_sh          <= 1'b0;
                startAdd         <= 1'b1;//our resetn
                subtract         <= 1'b1;
-               enableC          <= 1'b0;// I'm setting this to 0 and using the register to save our result
+               //enableC          <= 1'b0;// I'm setting this to 0 and using the register to save our result
                reset            <= 1'b0; //counter reset
                countEn          <= 1'b0;
                showFluffyPonies <= extraState;
@@ -277,7 +277,7 @@ module montgomery(
                regA_sh          <= 1'b0;
                startAdd         <= 1'b1; //our resetn
                subtract         <= 1'b0;
-               enableC          <= 1'b0; //shouldn't C be off?
+               //enableC          <= 1'b0; //shouldn't C be off?
                reset            <= 1'b0; //counter reset
                countEn          <= 1'b0;
                showFluffyPonies <= extraState;
@@ -291,7 +291,7 @@ module montgomery(
              regA_sh          <= 1'b0;
              startAdd         <= 1'b1;
              subtract         <= 1'b0;
-             enableC          <= 1'b1;
+             //enableC          <= 1'b1;
              reset            <= 1'b0;
              countEn          <= 1'b0;
              showFluffyPonies <= extraState;
