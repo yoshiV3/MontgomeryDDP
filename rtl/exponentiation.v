@@ -10,6 +10,9 @@ module exponentiation(
     input [511:0] Rsquaredmodm,
     input [511:0] exponent,
     input [511:0] x,
+    //Montgomery Multiplication mode
+    input         multiplication_enable,
+    
     output done,
     output [511:0] A_result
     );
@@ -203,6 +206,16 @@ module exponentiation(
                 select_b <= 2'd3;            
             end
             
+            else if (state ==3'd6) //use state 1 and remove this if you want to save space
+                begin
+                    exponent_en <= 1'b0;// honestly don't care, but whatever
+                    initial_shift <= 1'b0;// honestly don't care, but whatever
+                    A_en <= 1'b1;
+                    A_Rmodm <= 1'b0; // honestly don't care, but whatever
+                    select_a <= 1'b1;
+                    select_b <= 2'd0;            
+                end
+            
         else //if (state ==3'd5)
             begin
                 exponent_en <= 1'b0;
@@ -235,9 +248,13 @@ module exponentiation(
     begin
         exponent_shift <= 1'b0;
         start <= 1'b0;
-        if (startExponentiation)
+        if (startExponentiation && ~multiplication_enable)
             begin
             nextstate <= 3'd1;
+            end
+        else if (startExponentiation && multiplication_enable)
+            begin
+            nextstate <= 3'd6;
             end
         else
             begin
@@ -319,6 +336,21 @@ module exponentiation(
             nextstate <= 3'd5;
             start <= 1'b0;
             end
+    end
+    else if (state == 3'd6)
+    begin
+        exponent_shift <=1'b0;
+        if (~montgomeryDone)
+            begin
+            start <= 1'b1;
+            nextstate <= 3'd6;
+            end
+        else
+            begin
+            nextstate <= 3'd5;
+            start <= 1'b0;
+            end
+    
     end
     else
     begin
