@@ -2,6 +2,7 @@
 
 #include "hw_accelerator.h"
 #include "montgomeryOpt.h"
+#include "mp_arith.h"
 
 // These variables are defined in the testvector.c
 // that is created by the testvector generator python script
@@ -69,6 +70,27 @@ int main()
 	xil_printf("reduction results");
 	customprint(cp,"h",16);
 	customprint(cq,"h",16);
+
+
+	uint32_t P_p[32] = { 0xe675b2c8, 0x1f7786c4, 0x7241612e, 0x9c91e95f, 0x91e84c62, 0xe2c9fb1d, 0xcc771350, 0x624d0449, 0x00d01a0b, 0xa4885446, 0x3142af24, 0x4642b4da, 0x08a4e42a, 0x11d6dca0, 0xbbd237a7, 0x65624a40, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000 };
+	uint32_t P_q[32] = { 0xa4e9391c, 0xfced2a81, 0x8a2efc5b, 0x0a988391, 0xe430d934, 0xddd00c89, 0x419a4598, 0x08cffdcd, 0x7ef06fd9, 0xc7b51b80, 0x64eb7740, 0xfc852f2f, 0x110ea6ab, 0x59e78904, 0xeed96e55, 0x3992637b, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000 };
+
+	uint32_t T_p[32];
+	uint32_t T_q[32];
+	uint32_t Ttemp[32];
+	uint32_t T[32];
+	uint32_t plaintext[32];
+
+	montMulOpt(P_p,x_p,N,N_prime,T_p,32);
+	montMulOpt(P_q,x_q,N,N_prime,T_q,32);
+
+
+	mp_add(T_p, T_q, Ttemp, 32);
+	condSubtractOpt(N, T, Ttemp, 32);
+
+	montMulOpt(T,r2_1024,N,N_prime,plaintext,32);
+
+
 
 	xil_printf("End\n\r");
 
