@@ -27,9 +27,16 @@ module tb_rsa_wrapper();
 
     wire [   3:0] leds;
 
-    reg  [1023:0] input_data_a_and_b;
+    reg  [1023:0] input_data_a;
     reg  [1023:0] input_data_m;
+    reg  [1023:0] input_data_b;
     reg  [1023:0] output_data;
+    reg  [1023:0] output_data_exp;
+    reg  [1023:0] in_x;
+    reg  [1023:0] in_e;
+    reg  [1023:0] in_m;
+    reg  [1023:0] Rmodm;
+    reg  [1023:0] Rsquaredmodm;
         
     rsa_wrapper rsa_wrapper(
         .clk                    (clk                    ),
@@ -86,35 +93,21 @@ module tb_rsa_wrapper();
     end
     endtask
 
-    task send_data_to_hw_a_and_b;
-    input [1023:0] data;
-    begin
-        // Assert data and valid
-        arm_to_fpga_data <= data;
-        arm_to_fpga_data_valid <= 1'b1;
-        #`CLK_PERIOD;
-        // Wait till accelerator is ready to read it
-        wait(arm_to_fpga_data_ready == 1'b1);
-        // It is read, do not continue asserting valid
-        arm_to_fpga_data_valid <= 1'b0;   
-        #`CLK_PERIOD;
-    end
-    endtask
-    
-     task send_data_to_hw_m;
-       input [1023:0] data;
-       begin
-           // Assert data and valid
-           arm_to_fpga_data <= data;
-           arm_to_fpga_data_valid <= 1'b1;
-           #`CLK_PERIOD;
-           // Wait till accelerator is ready to read it
-           wait(arm_to_fpga_data_ready == 1'b1);
-           // It is read, do not continue asserting valid
-           arm_to_fpga_data_valid <= 1'b0;   
-           #`CLK_PERIOD;
-       end
-       endtask
+
+task send_data_to_hw;
+        input [1023:0] data;
+        begin
+            // Assert data and valid
+            arm_to_fpga_data <= data;
+            arm_to_fpga_data_valid <= 1'b1;
+            #`CLK_PERIOD;
+            // Wait till accelerator is ready to read it
+            wait(arm_to_fpga_data_ready == 1'b1);
+            // It is read, do not continue asserting valid
+            arm_to_fpga_data_valid <= 1'b0;   
+            #`CLK_PERIOD;
+        end
+        endtask
 
     task read_data_from_hw;
     output [1023:0] odata;
@@ -145,17 +138,18 @@ module tb_rsa_wrapper();
     end 
     endtask
 
-
-    localparam CMD_READ_EXP               = 32'h0;
-    localparam CMD_READ_A_B_MONT          = 32'h1;
-    localparam CMD_READ_M_MONT            = 32'h2;
+    localparam CMD_READ_A                 = 32'h0;
+    localparam CMD_READ_B                 = 32'h1;
+    localparam CMD_READ_M                 = 32'h2;
     localparam CMD_COMPUTE_EXP            = 32'h3;
     localparam CMD_COMPUTE_MONT           = 32'h4;
-    localparam CMD_READ_EXP_MOD_RMOD      = 32'h5;
-    localparam CMD_READ_EXP_RSQ_EXP       = 32'h6;
-    localparam CMD_READ_EXP_X             = 32'h7;
-    localparam CMD_WRITE                  = 32'h8;
-    localparam CMD_RESET_MONT             = 32'h9;
+    localparam CMD_READ_EXP_MOD           = 32'h5;
+    localparam CMD_READ_EXP_RMOD          = 32'h6;
+    localparam CMD_READ_EXP_RSQ           = 32'h7;
+    localparam CMD_READ_EXP_X             = 32'h8;
+    localparam CMD_READ_EXP_EXP           = 32'h9;
+    localparam CMD_WRITE                  = 32'ha;
+    localparam CMD_RESET_MONT             = 32'hb;
     
     initial begin
 
@@ -163,27 +157,50 @@ module tb_rsa_wrapper();
         
         // Your task: 
         // Design a testbench to test your accelerator using the tasks defined above: send_cmd_to_hw, send_data_to_hw, read_data_from_hw, waitdone
-        input_data_a_and_b <= 1024'h87b21d93a10f35511c8d56264a6f95f0245d8004e0d3557c7ec2b396b4ed3cabda34f88e0c8154e9ffab2761e626a720eef1da7ee31ce6c31fcdeaec38eb9589901702c94e8d7f3c733aafa46a6b43948148fd2f08761b134bc6815c3a69f4fc4ca4cbec55a2e1e70178549683bf79db5fec9631717e6ae69a5ea5c9eb2a118d;
-        input_data_m       <=  1024'h0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f8f635bfae6507fc726853e48b8ff18f8037f58fbef63debba0381f2a7da936679f14a270b1129a730d905d283459a275b4dd75470965dfa6386b5321563997d;
-        
+        input_data_a <= 1024'h87b21d93a10f35511c8d56264a6f95f0245d8004e0d3557c7ec2b396b4ed3cabda34f88e0c8154e9ffab2761e626a720eef1da7ee31ce6c31fcdeaec38eb958987b21d93a10f35511c8d56264a6f95f0245d8004e0d3557c7ec2b396b4ed3cabda34f88e0c8154e9ffab2761e626a720eef1da7ee31ce6c31fcdeaec38eb9589;
+        input_data_b <= 1024'h901702c94e8d7f3c733aafa46a6b43948148fd2f08761b134bc6815c3a69f4fc4ca4cbec55a2e1e70178549683bf79db5fec9631717e6ae69a5ea5c9eb2a118d901702c94e8d7f3c733aafa46a6b43948148fd2f08761b134bc6815c3a69f4fc4ca4cbec55a2e1e70178549683bf79db5fec9631717e6ae69a5ea5c9eb2a118d;
+        input_data_m <= 1024'hf8f635bfae6507fc726853e48b8ff18f8037f58fbef63debba0381f2a7da936679f14a270b1129a730d905d283459a275b4dd75470965dfa6386b5321563997df8f635bfae6507fc726853e48b8ff18f8037f58fbef63debba0381f2a7da936679f14a270b1129a730d905d283459a275b4dd75470965dfa6386b5321563997d;
 
+
+
+        in_x            <=  1024'h87b21d93a10f35511c8d56264a6f95f0245d8004e0d3557c7ec2b396b4ed3cabda34f88e0c8154e9ffab2761e626a720eef1da7ee31ce6c31fcdeaec38eb9589;
+        in_x[1023:512]  <=  1024'h87b21d93a10f35511c8d56264a6f95f0245d8004e0d3557c7ec2b396b4ed3cabda34f88e0c8154e9ffab2761e626a720eef1da7ee31ce6c31fcdeaec38eb9589;
+                
+        in_e            <=  1024'haf;
+        in_e[1023:512]  <=  1024'haf;
+        
+        in_m            <=  1024'hd97a21880ab3b85681ef6162732ffcd3cf303982004568f7fba23d0d411ced4080fd567efcd793b308936f7522ead3c53ad80440edd50088935d2a3d9b9c5885;
+        in_m[1023:512]  <=  1024'hd97a21880ab3b85681ef6162732ffcd3cf303982004568f7fba23d0d411ced4080fd567efcd793b308936f7522ead3c53ad80440edd50088935d2a3d9b9c5885;
+                
+        Rmodm           <=  1024'h2685de77f54c47a97e109e9d8cd0032c30cfc67dffba9708045dc2f2bee312bf7f02a98103286c4cf76c908add152c3ac527fbbf122aff776ca2d5c26463a77b;
+        Rmodm[1023:512] <=  1024'h2685de77f54c47a97e109e9d8cd0032c30cfc67dffba9708045dc2f2bee312bf7f02a98103286c4cf76c908add152c3ac527fbbf122aff776ca2d5c26463a77b;
+                
+        Rsquaredmodm            <=  1024'h733f6233b70f1ff7bc7ea9a38d69c2d083bec7c1d73000a3c36a6b4699300aff43a2c4da76786ac6878e16ad896b861ad351008baa901886630148792eca57ad;
+        Rsquaredmodm[1023:512]  <=  1024'h733f6233b70f1ff7bc7ea9a38d69c2d083bec7c1d73000a3c36a6b4699300aff43a2c4da76786ac6878e16ad896b861ad351008baa901886630148792eca57ad;
+               
         #`CLK_PERIOD;
 
         ///////////////////// START EXAMPLE  /////////////////////
         
         //// --- Send the read command and transfer input data to FPGA
 
-        $display("Test for input a and b %h", input_data_a_and_b);
+        $display("Test montgomery input a %h", input_data_a);
+        $display("with input b %h", input_data_b);
         $display("with mod m  %h", input_data_m);
-        $display("Sending read command for A and B");
-        send_cmd_to_hw(CMD_READ_A_B_MONT);
-        send_data_to_hw_a_and_b(input_data_a_and_b);
+        $display("Sending read command for A");
+        send_cmd_to_hw(CMD_READ_A);
+        send_data_to_hw(input_data_a);
         waitdone();
         
+        $display("Sending read command for B");
+        send_cmd_to_hw(CMD_READ_B);
+        send_data_to_hw(input_data_b);
+        waitdone();
+                
         $display("Sending read command for M");
-                send_cmd_to_hw(CMD_READ_M_MONT);
-                send_data_to_hw_m(input_data_m);
-                waitdone();
+        send_cmd_to_hw(CMD_READ_M);
+        send_data_to_hw(input_data_m);
+        waitdone();
 
 
         //// --- Perform the compute operation
@@ -200,11 +217,57 @@ module tb_rsa_wrapper();
         read_data_from_hw(output_data);
         waitdone();
 
-
+        
         //// --- Print the array contents
 
         $display("Output is      %h", output_data);
                   
+$display("Test exponentiation input X %h", in_x);
+                
+                $display("Sending read command for x %h" , in_x );
+                send_cmd_to_hw(CMD_READ_EXP_X);
+                send_data_to_hw(in_x);
+                waitdone();
+                
+                $display("Sending read command for M %h" ,in_m);
+                send_cmd_to_hw(CMD_READ_EXP_MOD);
+                send_data_to_hw(in_m);
+                waitdone();
+                        
+                $display("Sending read command for exp %h" ,in_e);
+                send_cmd_to_hw(CMD_READ_EXP_EXP);
+                send_data_to_hw(in_e);
+                waitdone();
+                
+                $display("Sending read command for rmodm %h" ,Rmodm);
+                send_cmd_to_hw(CMD_READ_EXP_RMOD);
+                send_data_to_hw(Rmodm);
+                waitdone();
+                
+                $display("Sending read command for Rsqmod %h" ,Rsquaredmodm);
+                send_cmd_to_hw(CMD_READ_EXP_RSQ);
+                send_data_to_hw(Rsquaredmodm);
+                waitdone();
+        
+                //// --- Perform the compute operation
+        
+                $display("Sending compute command");
+                send_cmd_to_hw(CMD_COMPUTE_EXP);
+                waitdone();
+        
+        
+                //// --- Send write command and transfer output data from FPGA
+                
+                $display("Sending write command");
+                send_cmd_to_hw(CMD_WRITE);
+                read_data_from_hw(output_data_exp);
+                waitdone();
+        
+                
+                //// --- Print the array contents
+        
+                $display("Output is      %h", output_data_exp);        
+
         ///////////////////// END EXAMPLE  /////////////////////  
         
         $finish;
