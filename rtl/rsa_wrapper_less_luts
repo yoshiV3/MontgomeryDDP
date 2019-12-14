@@ -34,7 +34,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     reg resetn_exp1;
     wire[511:0]result_exp1;
 	
-	 wire  mod1_enable;
+	 reg  mod1_enable;
      reg  [511:0] in_modulus1;
      always @(posedge clk)
      begin
@@ -43,7 +43,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
      end
 	
 	
-	wire  Rmodm1_enable;
+	 reg  Rmodm1_enable;
      reg  [511:0] in_Rmodm1;
      always @(posedge clk)
      begin
@@ -52,7 +52,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
      end
 	
     
-	wire  Rsqmodm1_enable;
+	 reg  Rsqmodm1_enable;
      reg  [511:0] in_Rsqmodm1;
      always @(posedge clk)
      begin
@@ -61,7 +61,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
      end
 	
 	
-	wire  in_exp1_enable;
+	 reg  in_exp1_enable;
      reg  [511:0] in_exp1;
      always @(posedge clk)
      begin
@@ -70,7 +70,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
      end
 	 
 	
-	wire  in_x1_enable;
+	 reg  in_x1_enable;
      reg  [511:0] in_x1;
      always @(posedge clk)
      begin
@@ -97,7 +97,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     wire[511:0]result_exp2;
     
 	
-	 wire  mod2_enable;
+	 reg  mod2_enable;
      reg  [511:0] in_modulus2;
      always @(posedge clk)
      begin
@@ -106,7 +106,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
      end
 	
 	
-	wire  Rmodm2_enable;
+	 reg  Rmodm2_enable;
      reg  [511:0] in_Rmodm2;
      always @(posedge clk)
      begin
@@ -115,7 +115,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
      end
 	
     
-	wire  Rsqmodm2_enable;
+	 reg  Rsqmodm2_enable;
      reg  [511:0] in_Rsqmodm2;
      always @(posedge clk)
      begin
@@ -124,7 +124,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
      end
 	
 	
-	wire  in_exp2_enable;
+	 reg  in_exp2_enable;
      reg  [511:0] in_exp2;
      always @(posedge clk)
      begin
@@ -133,7 +133,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
      end
 	 
 	
-	wire  in_x2_enable;
+	 reg  in_x2_enable;
      reg  [511:0] in_x2;
      always @(posedge clk)
      begin
@@ -166,7 +166,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     localparam STATE_READ_DATA_X            = 4'h8;
     localparam STATE_READ_DATA_EXP          = 4'h9;
     localparam STATE_RESET                  = 4'ha;
-    localparam STATA_INIT_MONT		    = 4'hb;
+    localparam STATE_INIT_MONT		    = 4'hb;
     localparam STATE_INIT_EXP		    = 4'hc;
 
     reg [STATE_BITS-1:0] r_state;
@@ -174,11 +174,11 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     
     localparam CMD_COMPUTE_EXP            = 3'h0;
     localparam CMD_COMPUTE_MONT           = 3'h1;
-    localparam CMD_READ_EXP_MOD           = 3'h2;
-    localparam CMD_READ_EXP_RMOD          = 3'h3;
-    localparam CMD_READ_EXP_RSQ           = 3'h4;
-    localparam CMD_READ_EXP_X             = 3'h5;
-    localparam CMD_READ_EXP_EXP           = 3'h6;
+    localparam CMD_READ_MOD           = 3'h2;
+    localparam CMD_READ_RMOD          = 3'h3;
+    localparam CMD_READ_RSQ           = 3'h4;
+    localparam CMD_READ_X             = 3'h5;
+    localparam CMD_READ_EXP           = 3'h6;
     localparam CMD_WRITE_EXP              = 3'h7;
     /// - State Transition
 
@@ -194,15 +194,15 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                         if (arm_to_fpga_cmd_valid) begin
                             case (arm_to_fpga_cmd[2:0])
                                  
-                                CMD_READ_EXP_MOD:
+                                CMD_READ_MOD:
                                     next_state <= STATE_READ_DATA_MOD;
-                                CMD_READ_EXP_RMOD:
+                                CMD_READ_RMOD:
                                     next_state <= STATE_READ_DATA_RMOD;
-                                CMD_READ_EXP_RSQ:
+                                CMD_READ_RSQ:
                                     next_state <= STATE_READ_DATA_RSQ;
-                                CMD_READ_EXP_X:
+                                CMD_READ_X:
                                     next_state <= STATE_READ_DATA_X;
-                                CMD_READ_EXP_EXP:
+                                CMD_READ_EXP:
                                     next_state <= STATE_READ_DATA_EXP;                                            
                                 CMD_COMPUTE_EXP:                            
                                     next_state <= STATE_INIT_EXP;
