@@ -64,6 +64,7 @@ module montgomery(
     reg          regA_sh;
     wire [511:0] regA_D;
     reg[511:0]   regA_shift;
+
     always @(posedge clk)
     begin
         if(~ resetn)    begin
@@ -79,7 +80,9 @@ module montgomery(
                   end
      end
     
+ 
      assign regA_D = in_a; 
+    
     
     reg          regB_en;
     wire [511:0] regB_D;
@@ -120,15 +123,35 @@ module montgomery(
     genvar i;
     generate
     for (i=0; i<=511; i = i+1) begin : multiplexWithZeroIsAnd
-    assign B0[i] = regA_shift[0] & regB_Q[i];
-    assign B1[i+1] = regA_shift[1] & regB_Q[i]; //We automatically shift
+//    assign B0[i] = regA_shift[0] & regB_Q[i];
+//    assign B1[i+1] = regA_shift[1] & regB_Q[i]; //We automatically shift
     assign M0[i] = M0Select & regM_Q[i];
     assign M1[i+1] = M1Select & regM_Q[i]; //We automatically shift
     end
     endgenerate
-    assign B1[0] = 1'b0; //shifted left so we can shift right twice at the end
+//    assign B1[0] = 1'b0; //shifted left so we can shift right twice at the end
     assign M1[0] = 1'b0; 
     
+    reg [511:0] B0_reg;
+    always @(posedge clk)
+    begin
+        if (~resetn || (~regA_D[0] & regA_en) || (~regA_shift[2] & regA_sh))
+            B0_reg <= 511'b0;
+        else
+            B0_reg <= regB_Q;
+    end
+    
+    reg [512:0] B1_reg;
+    always @(posedge clk)
+    begin
+        if (~resetn || (~regA_D[1] & regA_en) || (~regA_shift[3] & regA_sh))
+            B1_reg <= 512'b0;
+        else
+            B1_reg <= {regB_Q, 1'b0};
+    end
+    
+    assign B0 = B0_reg;
+    assign B1 = B1_reg;
 
     
     reg [3:0] state, nextstate;
@@ -181,6 +204,22 @@ module montgomery(
                C_doubleshift <= 1'b0;
                
               end
+          else if(state == 4'd1)// Identical to the zero statem just to give us some breathing space       
+            begin
+             regM_en     <= 1'b1;
+             regB_en     <= 1'b1;
+             regA_en     <= 1'b1;
+             regA_sh     <= 1'b0;
+             startAdd    <= 1'b0;
+             subtract    <= 1'b0;
+             //enableC     <= 1'b0;
+             reset       <= 1'b1;
+             countEn     <= 1'b0;
+             showFluffyPonies <= 4'd8;
+             C_doubleshift <= 1'b0;
+             
+            end
+              
         // firsrt state
 //          else if(state == 4'd1)       
 //              begin
@@ -305,10 +344,15 @@ module montgomery(
         if(state == 4'd0) begin
             extraStateNext <= 4'd8;
            if(start)
-                nextstate <= 4'd3;
+                nextstate <= 4'd1;
             else
                 nextstate <= 4'd0;
         end
+        else if(state == 4'd1) begin
+           extraStateNext <= 4'd8;
+           nextstate <= 4'd3;
+        end
+        
 //        //begin state 
 //        else if (state == 4'd1) begin
 //            extraStateNext <= 4'd8;
