@@ -34,6 +34,8 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     reg resetn_exp1;
     wire[511:0]result_exp1;
 	
+	
+	
 	 reg  mod1_enable;
      reg  [511:0] in_modulus1;
      always @(posedge clk)
@@ -261,7 +263,21 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
         end
     ////////////// - Computation
 
-    reg [TX_SIZE-1:0] core_data;
+	
+	
+	 reg  core_data_enable;
+     reg  [TX_SIZE-1:0] core_data;
+     always @(posedge clk)
+     begin
+         if(~resetn)         core_data <= 1024'd0;
+         else if (core_data_enable)  begin
+						core_data[511:0]    <=result_exp1;
+						core_data[1023:512] <=result_exp2;
+		 end
+     end
+	
+	
+	
     always @(posedge(clk)) begin
         if (resetn==1'b0) begin
             core_data <= 1024'b0;
@@ -286,9 +302,9 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
 													Rmodm2_enable	= 1'b0;
 													Rsqmodm1_enable	= 1'b0;
 													Rsqmodm2_enable	= 1'b0;
+													core_data_enable= 1'b0;
 													end
-                    else
-                        core_data <= core_data;
+                    
                 end	
                 
                 STATE_READ_DATA_RMOD: begin
@@ -303,9 +319,9 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
 													Rmodm2_enable	= 1'b1;
 													Rsqmodm1_enable	= 1'b0;
 													Rsqmodm2_enable	= 1'b0;
+													core_data_enable= 1'b0;
 													end
-                    else
-                        core_data <= core_data;
+                    
                 end
                 
                 STATE_READ_DATA_RSQ: begin
@@ -320,9 +336,9 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
 													Rmodm2_enable	= 1'b0;
 													Rsqmodm1_enable	= 1'b1;
 													Rsqmodm2_enable	= 1'b1;
+													core_data_enable= 1'b0;
                                                      end
-                    else
-                        core_data <= core_data;
+                    
                 end
                 
                 STATE_READ_DATA_X: begin
@@ -337,9 +353,9 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
 													Rmodm2_enable	= 1'b0;
 													Rsqmodm1_enable	= 1'b0;
 													Rsqmodm2_enable	= 1'b0;
+													core_data_enable= 1'b0;
                                                     end
-                    else
-                        core_data <= core_data;
+                    
                 end
                 STATE_READ_DATA_EXP: begin
                     if (arm_to_fpga_data_valid)     begin                                                     
@@ -353,9 +369,9 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
 													Rmodm2_enable	= 1'b0;
 													Rsqmodm1_enable	= 1'b0;
 													Rsqmodm2_enable	= 1'b0;
+													core_data_enable= 1'b0;
                                                     end
-                    else
-                        core_data <= core_data;
+                    
                 end
                 
 				
@@ -372,29 +388,29 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                 STATE_COMPUTE_EXP: begin
                     start_exp1 <= 1'b1;
                     start_exp2 <= 1'b1; 
-                    core_data[511:0]    <=result_exp1;
-                    core_data[1023:512] <=result_exp2;
+                    core_data_enable= 1'b1;
                     
                 end 
                 STATE_COMPUTE_MONT: begin
                     start_exp1 <= 1'b1;
                     start_exp2 <= 1'b1;         
-                    core_data[511:0]    <=result_exp1;
-                    core_data[1023:512] <=result_exp2;                           
+                    core_data_enable= 1'b1;                           
                 end
                 STATE_ASSERT_DONE: begin
                     resetn_exp1 <= 1'b1;
                     resetn_exp2 <= 1'b1;
+					core_data_enable= 1'b0;
                 end
                 STATE_RESET: begin
                     start_exp1 <= 1'b0;
                     start_exp2 <= 1'b0;
                     resetn_exp1 <= 1'b0;
                     resetn_exp2  <=1'b0;
-                    
+					core_data_enable= 1'b0;
                     end
                 default: begin
-                    core_data <= core_data;
+                    
+					core_data_enable= 1'b0;
                 end
                 
             endcase
