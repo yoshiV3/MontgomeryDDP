@@ -86,6 +86,8 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     localparam STATE_READ_DATA_X            = 4'h8;
     localparam STATE_READ_DATA_EXP          = 4'h9;
     localparam STATE_RESET                  = 4'ha;
+    localparam STATA_INIT_MONT		    = 4'hb;
+    localparam STATE_INIT_EXP		    = 4'hc;
 
     reg [STATE_BITS-1:0] r_state;
     reg [STATE_BITS-1:0] next_state;
@@ -148,10 +150,10 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                     next_state <= (arm_to_fpga_data_valid) ? STATE_ASSERT_DONE : r_state;     
                 STATE_COMPUTE_EXP: 
                     next_state <= (done_exp2 &&done_exp1) ? STATE_ASSERT_DONE : r_state;
-				STATE_INIT_MONT:
-					next_state <= STATE_COMPUTE_MONT;
-				STATE_INIT_EXP
-					next_state <= STATE_COMPUTE_EXP;
+		STATE_INIT_MONT:
+        	    next_state <= STATE_COMPUTE_MONT;
+	        STATE_INIT_EXP:
+		    next_state <= STATE_COMPUTE_EXP;
                 STATE_COMPUTE_MONT:
                     next_state <= (done_exp2 &&done_exp1) ? STATE_ASSERT_DONE : r_state;
                 STATE_WRITE_DATA:
