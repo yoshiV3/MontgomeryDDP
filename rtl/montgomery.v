@@ -60,7 +60,7 @@ module montgomery(
 
     
     
-    reg          regA_en;
+
     reg          regA_sh;
     wire [511:0] regA_D;
     reg[511:0]   regA_shift;
@@ -70,11 +70,11 @@ module montgomery(
         if(~ resetn)    begin
               regA_shift <= 512'd0;
         end
-        else if (regA_en) 
+        else if (~regA_sh) 
                   begin
                   regA_shift <= regA_D;
                   end
-         else if (regA_sh)
+         else
                   begin
                   regA_shift <= {2'b0,regA_shift[511:2]};        
                   end
@@ -84,24 +84,23 @@ module montgomery(
      assign regA_D = in_a; 
     
     
-    reg          regB_en;
+
     wire [511:0] regB_D;
     reg  [511:0] regB_Q;
     always @(posedge clk)
     begin
         if(~ resetn)          regB_Q <= 514'd0;
-        else if (regA_en)   regB_Q <= regB_D;
+        else if (~regA_sh)   regB_Q <= regB_D;
     end
     
     assign regB_D = in_b; 
-    
-    reg          regM_en;
+
     wire [511:0] regM_D;
     reg  [511:0] regM_Q;
     always @(posedge clk)
     begin
         if(~ resetn)          regM_Q <= 514'd0;
-        else if (regA_en)   regM_Q <= regM_D;
+        else if (~regA_sh)   regM_Q <= regM_D;
     end
    
     assign regM_D = in_m; 
@@ -135,7 +134,7 @@ module montgomery(
     reg [511:0] B0_reg;
     always @(posedge clk)
     begin
-        if (~resetn || (~regA_D[0] & regA_en) || (~regA_shift[2] & regA_sh))
+        if (~resetn || (~regA_D[0] & ~regA_sh) || (~regA_shift[2] & regA_sh))
             B0_reg <= 511'b0;
         else
             B0_reg <= regB_Q;
@@ -144,7 +143,7 @@ module montgomery(
     reg [512:0] B1_reg;
     always @(posedge clk)
     begin
-        if (~resetn || (~regA_D[1] & regA_en) || (~regA_shift[3] & regA_sh))
+        if (~resetn || (~regA_D[1] & ~regA_sh) || (~regA_shift[3] & regA_sh))
             B1_reg <= 512'b0;
         else
             B1_reg <= {regB_Q, 1'b0};
@@ -191,9 +190,6 @@ module montgomery(
        // Enable input registers to fetch the inputs A and B when start is received
           if(state == 4'd0)       
               begin
-               regM_en     <= 1'b1;
-               regB_en     <= 1'b1;
-               regA_en     <= 1'b1;
                regA_sh     <= 1'b0;
                startAdd    <= 1'b0;
                subtract    <= 1'b0;
@@ -206,9 +202,7 @@ module montgomery(
               end
           else if(state == 4'd1)// Identical to the zero statem just to give us some breathing space       
             begin
-             regM_en     <= 1'b1;
-             regB_en     <= 1'b1;
-             regA_en     <= 1'b1;
+
              regA_sh     <= 1'b0;
              startAdd    <= 1'b0;
              subtract    <= 1'b0;
@@ -252,9 +246,7 @@ module montgomery(
 //              end 
           else if(state == 4'd3)       
               begin
-               regM_en     <= 1'b0;
-               regB_en     <= 1'b0;
-               regA_en     <= 1'b0;
+
                regA_sh     <= 1'b1; //We shift every cycle
                startAdd    <= 1'b1;
                subtract    <= 1'b0;
@@ -296,9 +288,6 @@ module montgomery(
 //                  end 
           else if(state == 4'd5)       
               begin
-               regM_en          <= 1'b0;
-               regB_en          <= 1'b0;
-               regA_en          <= 1'b0;
                regA_sh          <= 1'b0;
                startAdd         <= 1'b1;//our resetn
                subtract         <= 1'b1;
@@ -310,9 +299,6 @@ module montgomery(
               end 
           else if(state == 4'd7)       
               begin
-               regM_en          <= 1'b0;
-               regB_en          <= 1'b0;
-               regA_en          <= 1'b0;
                regA_sh          <= 1'b0;
                startAdd         <= 1'b1; //our resetn
                subtract         <= 1'b0;
@@ -324,9 +310,6 @@ module montgomery(
               end    
          else 
             begin
-             regM_en          <= 1'b0;
-             regB_en          <= 1'b0;
-             regA_en          <= 1'b0;
              regA_sh          <= 1'b0;
              startAdd         <= 1'b1;
              subtract         <= 1'b0;
