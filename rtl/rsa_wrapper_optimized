@@ -90,15 +90,14 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     reg [STATE_BITS-1:0] r_state;
     reg [STATE_BITS-1:0] next_state;
     
-    localparam CMD_COMPUTE_EXP            = 4'h0;
-    localparam CMD_COMPUTE_MONT           = 4'h1;
-    localparam CMD_READ_EXP_MOD           = 4'h2;
-    localparam CMD_READ_EXP_RMOD          = 4'h3;
-    localparam CMD_READ_EXP_RSQ           = 4'h4;
-    localparam CMD_READ_EXP_X             = 4'h5;
-    localparam CMD_READ_EXP_EXP           = 4'h6;
-    localparam CMD_WRITE_EXP              = 4'h7;
-    localparam CMD_RESET                  = 4'h8;
+    localparam CMD_COMPUTE_EXP            = 3'h0;
+    localparam CMD_COMPUTE_MONT           = 3'h1;
+    localparam CMD_READ_EXP_MOD           = 3'h2;
+    localparam CMD_READ_EXP_RMOD          = 3'h3;
+    localparam CMD_READ_EXP_RSQ           = 3'h4;
+    localparam CMD_READ_EXP_X             = 3'h5;
+    localparam CMD_READ_EXP_EXP           = 3'h6;
+    localparam CMD_WRITE_EXP              = 3'h7;
     /// - State Transition
 
     always @(*)
@@ -111,7 +110,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                 STATE_WAIT_FOR_CMD:
                     begin
                         if (arm_to_fpga_cmd_valid) begin
-                            case (arm_to_fpga_cmd[3:0])
+                            case (arm_to_fpga_cmd[2:0])
                                  
                                 CMD_READ_EXP_MOD:
                                     next_state <= STATE_READ_DATA_MOD;
@@ -129,8 +128,6 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                                     next_state <= STATE_INIT_MONT;
                                 CMD_WRITE_EXP: 
                                     next_state <= STATE_WRITE_DATA;
-                                CMD_RESET:
-                                    next_state <= STATE_RESET;
                                 default:
                                     next_state <= r_state;
                             endcase
@@ -157,10 +154,8 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
 					next_state <= STATE_COMPUTE_EXP;
                 STATE_COMPUTE_MONT:
                     next_state <= (done_exp2 &&done_exp1) ? STATE_ASSERT_DONE : r_state;
-                                        
                 STATE_WRITE_DATA:
                     next_state <= (fpga_to_arm_data_ready) ? STATE_RESET : r_state;
-                    
                 STATE_ASSERT_DONE:
                     next_state <= (fpga_to_arm_done_read) ? STATE_WAIT_FOR_CMD : r_state;
                     
