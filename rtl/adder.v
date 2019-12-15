@@ -6,8 +6,12 @@ module mpadder(
     input  wire         subtract,
     input  wire [511:0] B0,
     input  wire [512:0] B1,
+    input  wire [513:0] B2,
+    input  wire [514:0] B3,
     input  wire [511:0] M0,
     input  wire [512:0] M1,
+    input  wire [513:0] M2,
+    input  wire [514:0] M3,
     input  wire [512:0] subtraction, //now only for the subtract
     input  wire         c_doubleshift,
     //input  wire         enableC,
@@ -15,7 +19,9 @@ module mpadder(
     output wire [513:0] trueResult,
     output wire         cZero,
     output wire         carry, // better name would be subtract_finished
-    output wire         cOne
+    output wire         cOne,
+    output wire         cTwo,
+    output wire         cThree
     //output wire         done
      );
      
@@ -29,15 +35,15 @@ module mpadder(
 
 
      wire        c_enable; //same things as enableC
-     wire [514:0] C1bOut;
-     wire [514:0] C1cOut;
-     wire [513:0] C2b; 
+     wire [516:0] C1bOut;
+     wire [516:0] C1cOut;
+     wire [515:0] C2b; 
 
-     reg  [513:0] c_regb; //TWICE AS LARGE AS THE CORRECT RESULT!!!
+     reg  [515:0] c_regb; //TWICE AS LARGE AS THE CORRECT RESULT!!!
      always @(posedge clk)
      begin
-         if(~resetn)         c_regb <= 514'd0;
-         else if (c_doubleshift)   c_regb <= {1'b0,C1bOut[514:2]}; //We only shift once now
+         if(~resetn)         c_regb <= 516'd0;
+         else if (c_doubleshift)   c_regb <= {1'b0,C1bOut[516:2]}; //We only shift once now
          //else if (c_enable)  c_regb <= C1bOut[513:0];
          else if (subtract && showFluffyPonies == 4'b0)  c_regb <= {1'b0, result};
      end
@@ -46,13 +52,13 @@ module mpadder(
      
 
 
-     wire [514:0] C2c; 
+     wire [516:0] C2c; 
 
-     reg  [514:0] c_regc;//TWICE AS LARGE AS THE CORRECT RESULT!!!
+     reg  [516:0] c_regc;//TWICE AS LARGE AS THE CORRECT RESULT!!!
      always @(posedge clk)
      begin
-         if(~resetn)         c_regc <= 515'd0;
-         else if (c_doubleshift)   c_regc <= {1'b0,C1cOut[514:1]}; //one shift because the other shift is done in the adder by starting at 0
+         if(~resetn)         c_regc <= 517'd0;
+         else if (c_doubleshift)   c_regc <= {1'b0,C1cOut[516:1]}; //one shift because the other 3 shifts are done in the adder by starting at 0
          //else if (c_enable)  c_regc <= C1cOut;
      end
      
@@ -62,18 +68,18 @@ module mpadder(
      assign C2b = c_regb;
      assign C2c = c_regc;
      //assign cZero = C2b[0]^C2c[0];This will always be 0
-     wire [3:0] sumCarryAndBit;
-     assign sumCarryAndBit = C2b[2:0] + C2c[2:0];
-     assign {cOne, cZero} = sumCarryAndBit[3:1]; //be don't need the 0 bit,
+     wire [7:0] sumCarryAndBit;
+     assign sumCarryAndBit = C2b[6:0] + C2c[6:0];
+     assign {cThree,cTwo,cOne, cZero} = sumCarryAndBit[7:3]; //be don't need the 0 bit,
      // since it will be 0, and the first bit is not our concern
     // This can be optimized     
      
      //assign cOne = C2b[1]^C2c[1]^(C2b[0]&C2c[0]);
 
      
-     wire [102:0] operandAShift;
-     wire [102:0] operandBShift;
-     wire [103:0] tempRes;
+     wire [103:0] operandAShift;
+     wire [103:0] operandBShift;
+     wire [104:0] tempRes;
      
 
 
@@ -81,46 +87,46 @@ module mpadder(
 
      //wire [102:0] result_d;
 
-     reg  [102:0] result_regOne;
-     reg  [102:0] result_regTwo;
-     reg  [102:0] result_regThree;
-     reg  [102:0] result_regFour;
-     reg  [100:0] result_regFive;
+     reg  [103:0] result_regOne;
+     reg  [103:0] result_regTwo;
+     reg  [103:0] result_regThree;
+     reg  [103:0] result_regFour;
+     reg  [103:0] result_regFive;
 
      
      wire   resultOne_en ;  
-     wire [102:0] result_d1;
+     wire [103:0] result_d1;
       always @(posedge clk)
       begin
-          if(~resetn)            result_regOne   <= 103'd0;
+          if(~resetn)            result_regOne   <= 104'd0;
           else if (resultOne_en) result_regOne   <= result_d1;
      end
-     wire [102:0] result_d2;
+     wire [103:0] result_d2;
       wire   resultTwo_en ;  
       always @(posedge clk)
       begin
-          if(~resetn)            result_regTwo   <= 103'd0;
+          if(~resetn)            result_regTwo   <= 104'd0;
           else if (resultTwo_en) result_regTwo   <= result_d2;
      end
      
      
       wire   resultThree_en ;
-      wire [102:0] result_d3;  
+      wire [103:0] result_d3;  
       always @(posedge clk)
       begin
-          if(~resetn)             result_regThree  <= 103'd0;
+          if(~resetn)             result_regThree  <= 104'd0;
           else if (resultThree_en) result_regThree   <= result_d3;
      end
      
      wire   resultFour_en ; 
-     wire [102:0] result_d4; 
+     wire [103:0] result_d4; 
      always @(posedge clk)
      begin
-         if(~resetn)             result_regFour  <= 103'd0;
+         if(~resetn)             result_regFour  <= 104'd0;
          else if (resultFour_en) result_regFour   <= result_d4;
     end
     
-    wire   resultFive_en ; 
+    wire   resultFive_en ;  //change this as required
     wire [100:0] result_d5; 
     always @(posedge clk)
     begin
@@ -135,41 +141,41 @@ module mpadder(
      assign resultFour_en  = (showFluffyPonies == 4'd4);
      assign resultFive_en  = (showFluffyPonies == 4'd5);
 
-     assign result_d1 = tempRes[102:0];
-     assign result_d2 = tempRes[102:0];
-     assign result_d3 = tempRes[102:0]; 
-     assign result_d4 = tempRes[102:0];
+     assign result_d1 = tempRes[103:0];
+     assign result_d2 = tempRes[103:0];
+     assign result_d3 = tempRes[103:0]; 
+     assign result_d4 = tempRes[103:0];
      assign result_d5 = tempRes[100:0];       
        
      assign result = {result_regFive, result_regFour, result_regThree, result_regTwo, result_regOne};
       
      
-     // 103 bit adder
+     // 104 bit adder
      reg  carry_inNew;
      always @(posedge clk)
      begin
-         if(~resetn)          carry_inNew <= 2'd0;
-         else if(showFluffyPonies[3] == 1'd0 && showFluffyPonies != 4'd0 ) carry_inNew <= tempRes[103];
+         if(~resetn)          carry_inNew <= 1'd0;
+         else if(showFluffyPonies[3] == 1'd0 && showFluffyPonies != 4'd0 ) carry_inNew <= tempRes[104];
      end
      
      
-     wire [102:0] operandA; 
-     wire [102:0] operandB;
+     wire [103:0] operandA; 
+     wire [103:0] operandB;
 
-      assign operandA = (showFluffyPonies == 4'b0) ? C2b[102:0] : 
-     (showFluffyPonies == 4'd1) ? C2b[205:103] :
-     (showFluffyPonies == 4'd2) ? C2b[308:206] : 
-     (showFluffyPonies == 4'd3) ? C2b[411:309] : 
-     C2b[513:412];
+      assign operandA = (showFluffyPonies == 4'b0) ? C2b[103:0] : 
+     (showFluffyPonies == 4'd1) ? C2b[207:104] :
+     (showFluffyPonies == 4'd2) ? C2b[311:208] : 
+     (showFluffyPonies == 4'd3) ? C2b[415:312] : 
+     C2b[515:415];
 //     (showFluffyPonies == 4'd4) ? C2b[513:412]:
 //     103'b0; 
      
      
-      assign operandB = (showFluffyPonies == 4'b0) ? C2c[102:0] : 
-      (showFluffyPonies == 4'd1) ? C2c[205:103 ] : 
-      (showFluffyPonies == 4'd2) ? C2c[308:206] : 
-      (showFluffyPonies == 4'd3) ? C2c[411:309] : 
-      C2c[514:412];
+      assign operandB = (showFluffyPonies == 4'b0) ? C2c[103:0] : 
+      (showFluffyPonies == 4'd1) ? C2c[207:104] : 
+      (showFluffyPonies == 4'd2) ? C2c[311:208] : 
+      (showFluffyPonies == 4'd3) ? C2c[415:312] : 
+      C2c[515:415];
 //      (showFluffyPonies == 4'd4) ? C2c[514:412]:
 //       103'b0; 
       
@@ -185,34 +191,34 @@ module mpadder(
      ): operandA;                                                                                                                                                                                                                                                                                                                                                                                             
 
      assign operandBShift = (subtract) ? (
-     (showFluffyPonies == 4'd0) ? subtraction[102:0] :
-     (showFluffyPonies == 4'd1) ? subtraction[205:103] :
-     (showFluffyPonies == 4'd2) ? subtraction[308:206] :
-     (showFluffyPonies == 4'd3) ? subtraction[411:309] :
-     subtraction[512:412] 
+     (showFluffyPonies == 4'd0) ? subtraction[103:0] :
+     (showFluffyPonies == 4'd1) ? subtraction[207:104] :
+     (showFluffyPonies == 4'd2) ? subtraction[311:208] :
+     (showFluffyPonies == 4'd3) ? subtraction[415:312] :
+     subtraction[515:415] 
 //     (showFluffyPonies == 4'd4) ? in_a[511:412] :
 //     103'b0
      ) : operandB;
      
 
      wire   OperandAPipeline_en ; 
-     reg [102:0] reg_opAPipelineQ; 
-     wire [102:0] reg_opAPipelineD; 
-     wire [102:0] reg_opAPipelineOut; 
+     reg [103:0] reg_opAPipelineQ; 
+     wire [103:0] reg_opAPipelineD; 
+     wire [103:0] reg_opAPipelineOut; 
      always @(posedge clk)
      begin
-         if(~resetn)             reg_opAPipelineQ  <= 103'd0;
+         if(~resetn)             reg_opAPipelineQ  <= 104'd0;
          else if (OperandAPipeline_en) reg_opAPipelineQ   <= reg_opAPipelineD;
      end
      
      
      wire   OperandBPipeline_en ; 
-     reg [102:0] reg_opBPipelineQ; 
-     wire [102:0] reg_opBPipelineD; 
-     wire [102:0] reg_opBPipelineOut; 
+     reg [103:0] reg_opBPipelineQ; 
+     wire [103:0] reg_opBPipelineD; 
+     wire [103:0] reg_opBPipelineOut; 
      always @(posedge clk)
      begin
-         if(~resetn)             reg_opBPipelineQ  <= 103'd0;
+         if(~resetn)             reg_opBPipelineQ  <= 104'd0;
          else if (OperandBPipeline_en) reg_opBPipelineQ   <= reg_opBPipelineD;
      end
      
@@ -243,23 +249,23 @@ module mpadder(
      
      // but first initialize our cZerowith state register 'r_state_reg' using encoding 'one-hot' in module 'AXI4_S'
      
-     wire [514:0] LeftCarry;
-     wire [514:0] LeftBit;
-     wire [514:0] RightCarry;
-     wire [514:0] RightBit;
-     wire [514:0] MiddleCarry;
-     wire [514:0] MiddleBit;
+     wire [516:0] LeftCarry;
+     wire [516:0] LeftBit;
+     wire [516:0] RightCarry;
+     wire [516:0] RightBit;
+     wire [516:0] MiddleCarry;
+     wire [516:0] MiddleBit;
      
-     wire [514:0] LeftCarryShift = {1'b0,LeftCarry[513:0], 1'b0};
-     wire [514:0] RightCarryShift = {1'b0,RightCarry[513:0], 1'b0};
-     wire [514:0] MiddleCarryShift = {1'b0,MiddleCarry[513:0], 1'b0};
+     wire [516:0] LeftCarryShift = {1'b0,LeftCarry[515:0], 1'b0};
+     wire [516:0] RightCarryShift = {1'b0,RightCarry[515:0], 1'b0};
+     wire [516:0] MiddleCarryShift = {1'b0,MiddleCarry[515:0], 1'b0};
      
-     wire [514:0] B0Pad = {2'b0, B0, 1'b0};
-     wire [514:0] B1Pad = {1'b0,B1, 1'b0};
-     wire [514:0] M0Pad = {2'b0, M0, 1'b0};
-     wire [514:0] M1Pad = {1'b0,M1, 1'b0};
+     wire [516:0] B0Pad = {2'b0, B0, 3'b0};
+     wire [516:0] B1Pad = {1'b0,B1, 3'b0};
+     wire [516:0] M0Pad = {2'b0, M0, 3'b0};
+     wire [516:0] M1Pad = {1'b0,M1, 3'b0};
      
-     wire [514:0] C2bPad = {1'b0, C2b};
+     wire [516:0] C2bPad = {1'b0, C2b};
      
 
      
@@ -269,7 +275,7 @@ module mpadder(
 
      genvar i;
      generate
-     for (i=0; i<=514; i = i+1) begin : do4Adders
+     for (i=0; i<=516; i = i+1) begin : do4Adders
      (* dont_touch = "true"*)
     add3 addLeft (
         .carry(C2c[i]), // upper bit
@@ -284,6 +290,13 @@ module mpadder(
         .a(M1Pad[i]),    // input
         .result({RightCarry[i],RightBit[i]}) // C is the output wire in the outer module
     );
+    
+    add3 addRightRight (
+            .carry(B2Pad[i]), // upper bit
+            .sum(M2Pad[i]), //lower bit of this
+            .a(M3Pad[i]),    // input
+            .result({RightCarry[i],RightBit[i]}) // C is the output wire in the outer module
+        );
         
     add3 addMiddle (
         .carry(LeftCarryShift[i]), // upper bit
