@@ -1,0 +1,1 @@
+parameter TX_SIZE = 1024;
