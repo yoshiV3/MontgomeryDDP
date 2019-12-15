@@ -203,7 +203,7 @@ task send_data_to_hw;
 
         $display("Output is      %h", output_data);
                   
-$display("Test exponentiation input X %h", in_x);
+$display("Test exponentiation ");
                 
                 
                 $display("Sending read command for M %h" ,in_m);
