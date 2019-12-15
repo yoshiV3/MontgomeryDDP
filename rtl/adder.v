@@ -249,23 +249,31 @@ module mpadder(
      
      // but first initialize our cZerowith state register 'r_state_reg' using encoding 'one-hot' in module 'AXI4_S'
      
-     wire [516:0] LeftCarry;
-     wire [516:0] LeftBit;
-     wire [516:0] RightCarry;
-     wire [516:0] RightBit;
-     wire [516:0] MiddleCarry;
-     wire [516:0] MiddleBit;
+     wire [518:0] LeftCarry;
+     wire [518:0] LeftBit;
+     wire [518:0] RightCarry;
+     wire [518:0] RightBitRight;
+     wire [518:0] RightCarryRight;
+     wire [518:0] RightBit;
+     wire [518:0] MiddleCarry;
+     wire [518:0] MiddleBit;
      
-     wire [516:0] LeftCarryShift = {1'b0,LeftCarry[515:0], 1'b0};
-     wire [516:0] RightCarryShift = {1'b0,RightCarry[515:0], 1'b0};
-     wire [516:0] MiddleCarryShift = {1'b0,MiddleCarry[515:0], 1'b0};
+     wire [518:0] LeftCarryShift = {1'b0,LeftCarry[517:0], 1'b0};
+     wire [518:0] RightCarryShift = {1'b0,RightCarry[517:0], 1'b0};
+     wire [518:0] RightCarryRightShift = {1'b0,RightCarryRight[517:0], 1'b0};
+     wire [518:0] MiddleCarryShift = {1'b0,MiddleCarry[517:0], 1'b0};
      
-     wire [516:0] B0Pad = {2'b0, B0, 3'b0};
-     wire [516:0] B1Pad = {1'b0,B1, 3'b0};
-     wire [516:0] M0Pad = {2'b0, M0, 3'b0};
-     wire [516:0] M1Pad = {1'b0,M1, 3'b0};
+     wire [518:0] B0Pad = {4'b0, B0, 3'b0};
+     wire [518:0] B1Pad = {3'b0,B1, 3'b0};
+     wire [518:0] B2Pad =  {2'b0,B2, 3'b0};
+     wire [518:0] B3Pad = {1'b0,B3, 3'b0};
+     wire [518:0] M0Pad = {4'b0, M0, 3'b0};
+     wire [518:0] M1Pad = {3'b0,M1, 3'b0};
+     wire [518:0] M2Pad = {2'b0, M2, 3'b0};
+     wire [518:0] M3Pad = {1'b0,M3, 3'b0};
      
-     wire [516:0] C2bPad = {1'b0, C2b};
+     wire [518:0] C2bPad = {3'b0, C2b};
+     wire [518:0] C2cPad = {2'b0, C2c};
      
 
      
@@ -275,10 +283,10 @@ module mpadder(
 
      genvar i;
      generate
-     for (i=0; i<=516; i = i+1) begin : do4Adders
+     for (i=0; i<=518; i = i+1) begin : do4Adders
      (* dont_touch = "true"*)
     add3 addLeft (
-        .carry(C2c[i]), // upper bit
+        .carry(C2cPad[i]), // upper bit
         .sum(C2bPad[i]), //lower bit of this
         .a(B0Pad[i]),    // input
         .result({LeftCarry[i],LeftBit[i]}) // C is the output wire in the outer module
@@ -295,7 +303,7 @@ module mpadder(
             .carry(B2Pad[i]), // upper bit
             .sum(M2Pad[i]), //lower bit of this
             .a(M3Pad[i]),    // input
-            .result({RightCarry[i],RightBit[i]}) // C is the output wire in the outer module
+            .result({RightCarryRight[i],RightBitRight[i]}) // C is the output wire in the outer module
         );
         
     add3 addMiddle (
