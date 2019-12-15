@@ -66,7 +66,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
      always @(posedge clk)
      begin
          if(~resetn)         in_exp1 <= 512'd0;
-         else if (in_exp1_enable)   in_exp1 <= arm_to_fpga_data[511:0];
+         else if (in_exp1_enable)   in_exp1 <= arm_to_fpga_data[1023:512];
      end
 	 
 	
@@ -75,7 +75,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
      always @(posedge clk)
      begin
          if(~resetn)         in_x1 <= 512'd0;
-         else if (in_x1_enable)   in_x1 <= arm_to_fpga_data[1023:512];
+         else if (in_x1_enable)   in_x1 <= arm_to_fpga_data[511:0];
      end
 	
     reg in_mul_en1;
@@ -231,8 +231,8 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                                                     							
 													mod1_enable 	= 1'b0;
 													in_exp1_enable	= 1'b0;
-													in_x1_enable 	= 1'b1;
-													Rmodm1_enable	= 1'b0;
+													in_x1_enable 	= 1'b0;
+													Rmodm1_enable	= 1'b1;
 													Rsqmodm1_enable	= 1'b1;
 													core_data_enable= 1'b0;
                                                      end
@@ -243,8 +243,8 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                     if (arm_to_fpga_data_valid)     begin 
                                                     							mod1_enable 	= 1'b0;
 													in_exp1_enable	= 1'b1;
-													in_x1_enable 	= 1'b0;
-													Rmodm1_enable	= 1'b1;
+													in_x1_enable 	= 1'b1;
+													Rmodm1_enable	= 1'b0;
 													Rsqmodm1_enable	= 1'b0;
 													core_data_enable= 1'b0;
                                                     end
