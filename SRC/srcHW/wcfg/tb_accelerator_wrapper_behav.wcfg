@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="tb_accelerator_wrapper_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="tb_accelerator_wrapper" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="114166666fs"></ZoomStartTime>
+      <ZoomEndTime time="247166667fs"></ZoomEndTime>
+      <Cursor1Time time="225000000fs"></Cursor1Time>
+   </zoom_setting>
+   <WVObjectSize size="29" />
+   <wvobject type="logic" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/clk">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/resetn">
+      <obj_property name="ElementShortName">resetn</obj_property>
+      <obj_property name="ObjectShortName">resetn</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/bram_din">
+      <obj_property name="ElementShortName">bram_din[1023:0]</obj_property>
+      <obj_property name="ObjectShortName">bram_din[1023:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/bram_din_valid">
+      <obj_property name="ElementShortName">bram_din_valid</obj_property>
+      <obj_property name="ObjectShortName">bram_din_valid</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/bram_dout">
+      <obj_property name="ElementShortName">bram_dout[1023:0]</obj_property>
+      <obj_property name="ObjectShortName">bram_dout[1023:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/bram_dout_valid">
+      <obj_property name="ElementShortName">bram_dout_valid</obj_property>
+      <obj_property name="ObjectShortName">bram_dout_valid</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/bram_dout_read">
+      <obj_property name="ElementShortName">bram_dout_read</obj_property>
+      <obj_property name="ObjectShortName">bram_dout_read</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/port1_din">
+      <obj_property name="ElementShortName">port1_din[31:0]</obj_property>
+      <obj_property name="ObjectShortName">port1_din[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/port1_valid">
+      <obj_property name="ElementShortName">port1_valid</obj_property>
+      <obj_property name="ObjectShortName">port1_valid</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/port1_read">
+      <obj_property name="ElementShortName">port1_read</obj_property>
+      <obj_property name="ObjectShortName">port1_read</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/port2_valid">
+      <obj_property name="ElementShortName">port2_valid</obj_property>
+      <obj_property name="ObjectShortName">port2_valid</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/port2_read">
+      <obj_property name="ElementShortName">port2_read</obj_property>
+      <obj_property name="ObjectShortName">port2_read</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/leds">
+      <obj_property name="ElementShortName">leds[3:0]</obj_property>
+      <obj_property name="ObjectShortName">leds[3:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/accel_start">
+      <obj_property name="ElementShortName">accel_start</obj_property>
+      <obj_property name="ObjectShortName">accel_start</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/accel_din">
+      <obj_property name="ElementShortName">accel_din[1023:0]</obj_property>
+      <obj_property name="ObjectShortName">accel_din[1023:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/accel_dout">
+      <obj_property name="ElementShortName">accel_dout[1023:0]</obj_property>
+      <obj_property name="ObjectShortName">accel_dout[1023:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/accel_done">
+      <obj_property name="ElementShortName">accel_done</obj_property>
+      <obj_property name="ObjectShortName">accel_done</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/r_state">
+      <obj_property name="ElementShortName">r_state[2:0]</obj_property>
+      <obj_property name="ObjectShortName">r_state[2:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/next_state">
+      <obj_property name="ElementShortName">next_state[2:0]</obj_property>
+      <obj_property name="ObjectShortName">next_state[2:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/core_data">
+      <obj_property name="ElementShortName">core_data[1023:0]</obj_property>
+      <obj_property name="ObjectShortName">core_data[1023:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/r_bram_dout_valid">
+      <obj_property name="ElementShortName">r_bram_dout_valid</obj_property>
+      <obj_property name="ObjectShortName">r_bram_dout_valid</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/r_port2_valid">
+      <obj_property name="ElementShortName">r_port2_valid</obj_property>
+      <obj_property name="ObjectShortName">r_port2_valid</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/r_port1_read">
+      <obj_property name="ElementShortName">r_port1_read</obj_property>
+      <obj_property name="ObjectShortName">r_port1_read</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider29" type="divider">
+      <obj_property name="label">Accelerator</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/accl/state">
+      <obj_property name="ElementShortName">state[3:0]</obj_property>
+      <obj_property name="ObjectShortName">state[3:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/accl/start">
+      <obj_property name="ElementShortName">start</obj_property>
+      <obj_property name="ObjectShortName">start</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/accl/din">
+      <obj_property name="ElementShortName">din[1023:0]</obj_property>
+      <obj_property name="ObjectShortName">din[1023:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/accl/dout">
+      <obj_property name="ElementShortName">dout[1023:0]</obj_property>
+      <obj_property name="ObjectShortName">dout[1023:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_accelerator_wrapper/accelerator_wrapper/accl/done">
+      <obj_property name="ElementShortName">done</obj_property>
+      <obj_property name="ObjectShortName">done</obj_property>
+   </wvobject>
+</wave_config>
