@@ -55,7 +55,9 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
       counter_de <= counter_de + 10'd1;
      end
      
-     assign countEn = (r_state == STATE_COMPUTE_MONT);
+
+     
+
 	
 	 assign doneFive = (counter_de == 7);
 	 
@@ -132,7 +134,9 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     localparam STATE_EXTRA_DONE         = 4'hb;
 
     reg [STATE_BITS-1:0] r_state;
-    reg [STATE_BITS-1:0] next_state;
+    reg [STATE_BITS-1:0] next_state;     
+    
+    assign countEn = (r_state == STATE_COMPUTE_MONT);
     
     localparam CMD_COMPUTE_EXP            = 3'h0;
     localparam CMD_COMPUTE_MONT           = 3'h1;
@@ -225,7 +229,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
      begin
          if(~resetn)         core_data <= 1024'hdeadbeaf;
          else if (core_data_enable)  begin
-						core_data[511:0]    <={in_modulus1,in_Rsqmodm1}//outputExp;
+						core_data[511:0]    <={in_modulus1,in_Rsqmodm1};//outputExp;
 		 end
      end
 	
@@ -244,7 +248,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
 					if (arm_to_fpga_data_valid) 	begin 
 													mod1_enable 	= 1'b1;
 													in_exp1_enable	= 1'b0;
-													in_x1_enable 	= 1'b0;1A29EF75  93A7BB0 2719FD12 335644D3 6AA76F9C  A2A610D 8A313AFC B71095A6 2467C8E9 E1AA7DF0 3A656CD2 F24168BF 24240BC6 D7452180 454911CC C18ABB22
+													in_x1_enable 	= 1'b0;
 													Rmodm1_enable	= 1'b0;
 													Rsqmodm1_enable	= 1'b0;
 													core_data_enable= 1'b0;
@@ -268,7 +272,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                 
                 STATE_READ_DATA_EXP: begin
                     if (arm_to_fpga_data_valid)     begin 
-                                                    mod1_enable1A29EF75  93A7BB0 2719FD12 335644D3 6AA76F9C  A2A610D 8A313AFC B71095A6 2467C8E9 E1AA7DF0 3A656CD2 F24168BF 24240BC6 D7452180 454911CC C18ABB22 	= 1'b0;
+                                                    mod1_enable  	= 1'b0;
 													in_exp1_enable	= 1'b1;
 													in_x1_enable 	= 1'b0;
 													Rmodm1_enable	= 1'b1;
