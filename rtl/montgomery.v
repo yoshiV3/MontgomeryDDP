@@ -18,20 +18,13 @@ module montgomery(
     wire[513:0] resultAdd;
     wire c_zero;
     wire c_one;
-    wire c_two;
-    wire c_three;
     //reg enableC;
     wire carryAdd;
     
     wire [511:0] B0;
     wire [512:0] B1;
-    wire [513:0] B2;
-    wire [514:0] B3;
     wire [511:0] M0;
     wire [512:0] M1;
-    wire [513:0] M2;
-    wire [514:0] M3;
-    
     
     reg C_doubleshift;
     
@@ -45,18 +38,12 @@ module montgomery(
          .subtract (subtract),
          .B0     (B0),
          .B1     (B1),
-         .B2     (B2),
-         .B3     (B3),
          .M0     (M0),
          .M1     (M1),
-         .M2     (M2),
-         .M3     (M3),
          .subtraction   (negativeM),
          .c_doubleshift (C_doubleshift),
          .cZero   (c_zero),
          .cOne    (c_one),
-         .cTwo    (c_two),
-         .cThree  (c_three),
          .trueResult   (resultAdd),
          //.enableC  (enableC),
          .showFluffyPonies (showFluffyPonies),
@@ -66,9 +53,8 @@ module montgomery(
     //registers for A,M and B
     
     wire M0Select;
+    wire M0Carry;
     wire M1Select;
-    wire M2Select;
-    wire M3Select;
     
     
 
@@ -90,7 +76,7 @@ module montgomery(
                   end
          else
                   begin
-                  regA_shift <= {4'b0,regA_shift[511:4]};        
+                  regA_shift <= {2'b0,regA_shift[511:2]};        
                   end
      end
     
@@ -129,22 +115,9 @@ module montgomery(
     
     
         
-//    assign M0Select = (c_zero ^ (regB_Q[0] & regA_shift[0]));
-//    assign M0Carry = (c_zero & regB_Q[0]& regA_shift[0]) | (regM_Q[0] & M0Select & regB_Q[0]& regA_shift[0]) | (regM_Q[0] & M0Select & c_zero);
-//    assign M1Select = M0Carry ^ c_one ^ (regA_shift[0] & regB_Q[1]) ^ (regM_Q[1] & M0Select) ^ (regA_shift[1] & regB_Q[0]);
-    wire [3:0] tempSum0;
-    wire [2:0] tempSum1;
-    wire [1:0] tempSum2;
-    wire tempSum3;
-    
-    assign tempSum0 = {c_three, c_two, c_one, c_zero} + (regB_Q[3:0] &  {regA_shift[0], regA_shift[0], regA_shift[0], regA_shift[0]});
-    assign M0Select = tempSum0[0];
-    assign tempSum1 = ((tempSum0 + (regM_Q[3:0] & {M0Select, M0Select, M0Select, M0Select}))>> 1) + (regB_Q[2:0] &  {regA_shift[1], regA_shift[1], regA_shift[1], regA_shift[1]});
-    assign M1Select = tempSum1[0];
-    assign tempSum2 = ((tempSum1 + (regM_Q[2:0] & {M1Select, M1Select, M1Select, M1Select}))>> 1) + (regB_Q[1:0] &  {regA_shift[2], regA_shift[2], regA_shift[2], regA_shift[2]});
-    assign M2Select = tempSum2[0];
-    assign tempSum3 = ((tempSum2 + (regM_Q[1:0] & {M2Select, M2Select, M2Select, M2Select}))>> 1) + (regB_Q[0] &  {regA_shift[3], regA_shift[3], regA_shift[3], regA_shift[3]});
-    assign M3Select = tempSum3;
+    assign M0Select = (c_zero ^ (regB_Q[0] & regA_shift[0]));
+    assign M0Carry = (c_zero & regB_Q[0]& regA_shift[0]) | (regM_Q[0] & M0Select & regB_Q[0]& regA_shift[0]) | (regM_Q[0] & M0Select & c_zero);
+    assign M1Select = M0Carry ^ c_one ^ (regA_shift[0] & regB_Q[1]) ^ (regM_Q[1] & M0Select) ^ (regA_shift[1] & regB_Q[0]);
     
     genvar i;
     generate
@@ -153,20 +126,16 @@ module montgomery(
 //    assign B1[i+1] = regA_shift[1] & regB_Q[i]; //We automatically shift
     assign M0[i] = M0Select & regM_Q[i];
     assign M1[i+1] = M1Select & regM_Q[i]; //We automatically shift
-    assign M2[i+2] = M2Select & regM_Q[i];
-    assign M3[i+3] = M3Select & regM_Q[i]; //We automatically shift
     end
     endgenerate
 //    assign B1[0] = 1'b0; //shifted left so we can shift right twice at the end
-    assign M1[0] = 1'b0;
-    assign M2[1:0] = 2'b0;
-    assign M3[2:0] = 3'b0;
+    assign M1[0] = 1'b0; 
     
     reg [511:0] B0_reg;
     always @(posedge clk)
     begin
-        if (~resetn || (~regA_D[0] & ~regA_sh) || (~regA_shift[4] & regA_sh))
-            B0_reg <= 512'b0;
+        if (~resetn || (~regA_D[0] & ~regA_sh) || (~regA_shift[2] & regA_sh))
+            B0_reg <= 511'b0;
         else
             B0_reg <= regB_Q;
     end
@@ -174,34 +143,14 @@ module montgomery(
     reg [512:0] B1_reg;
     always @(posedge clk)
     begin
-        if (~resetn || (~regA_D[1] & ~regA_sh) || (~regA_shift[5] & regA_sh))
-            B1_reg <= 513'b0;
+        if (~resetn || (~regA_D[1] & ~regA_sh) || (~regA_shift[3] & regA_sh))
+            B1_reg <= 512'b0;
         else
             B1_reg <= {regB_Q, 1'b0};
     end
     
-    reg [513:0] B2_reg;
-    always @(posedge clk)
-    begin
-        if (~resetn || (~regA_D[2] & ~regA_sh) || (~regA_shift[6] & regA_sh))
-            B2_reg <= 514'b0;
-        else
-            B2_reg <= {regB_Q, 2'b0};
-    end
-    
-    reg [514:0] B3_reg;
-    always @(posedge clk)
-    begin
-        if (~resetn || (~regA_D[3] & ~regA_sh) || (~regA_shift[7] & regA_sh))
-            B3_reg <= 515'b0;
-        else
-            B3_reg <= {regB_Q, 3'b0};
-    end
-    
     assign B0 = B0_reg;
     assign B1 = B1_reg;
-    assign B2 = B2_reg;
-    assign B3 = B3_reg;
 
     
     reg [3:0] state, nextstate;
@@ -232,6 +181,8 @@ module montgomery(
      counter_up <= counter_up + 10'd1;
     end
     
+   
+   
     //reg [511:0] debug;
     // This always block was added to ensure the tool doesn't trim away the montgomery module.
     // Feel free to remove [511:1this block
@@ -398,7 +349,7 @@ module montgomery(
 
         
         else if (state == 4'd3) begin
-             if (counter_up == 10'd127) //switch 9
+             if (counter_up == 10'd255) //switch 9
              begin
                 nextstate <= 4'd7; // Go to the end
                 extraStateNext <= 4'd0;
@@ -489,8 +440,9 @@ module montgomery(
          end
           
     end
+    
          
-    assign result = resultAdd[511:0]; //trueResult
+    assign result =  resultAdd[511:0]; //trueResult
     
     assign done = (state ==  4'd8);
 endmodule

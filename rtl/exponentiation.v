@@ -20,8 +20,9 @@ module exponentiation(
     reg          start;
     wire  [511:0] in_a;
     wire  [511:0] in_b;
-    wire  [511:0] in_m;
+    wire  [511:0] in_m; 
     wire [511:0] result;
+    wire [511:0] A_result2;
     wire montgomeryDone;
     
     assign in_m = modulus;
@@ -44,9 +45,7 @@ module exponentiation(
             A <= result;    
     end
     
-    assign A_result = A;
-    
-
+    assign A_result = result; //A
     
     
     
