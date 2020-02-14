@@ -181,6 +181,8 @@ module montgomery(
      counter_up <= counter_up + 10'd1;
     end
     
+   
+   
     //reg [511:0] debug;
     // This always block was added to ensure the tool doesn't trim away the montgomery module.
     // Feel free to remove [511:1this block
@@ -438,8 +440,9 @@ module montgomery(
          end
           
     end
+    
          
-    assign result = resultAdd[511:0]; //trueResult
+    assign result =  resultAdd[511:0]; //trueResult
     
     assign done = (state ==  4'd8);
 endmodule

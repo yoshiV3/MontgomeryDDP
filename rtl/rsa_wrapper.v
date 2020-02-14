@@ -33,11 +33,67 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     wire done_exp1;
     reg resetn_exp1;
     wire[511:0]result_exp1;
-    reg [511:0]in_modulus1;
-    reg [511:0]in_Rmodm1;
-    reg [511:0]in_Rsqmodm1;
-    reg [511:0]in_exp1;
-    reg [511:0]in_x1;
+	
+	 reg  mod1_enable;
+     reg  [511:0] in_modulus1;
+     always @(posedge clk)
+     begin
+         if(~resetn)         in_modulus1 <= 512'd0;
+         else if (mod1_enable)   in_modulus1 <= arm_to_fpga_data[511:0];
+     end
+	
+	
+	
+	 reg [9:0] counter_de;
+	 wire countEn;
+	 wire doneFive;
+     always @(posedge clk)
+     begin
+     if(~resetn)
+      counter_de <= 10'd0;
+     else if(countEn)
+      counter_de <= counter_de + 10'd1;
+     end
+     
+     assign countEn = (r_state == STATE_COMPUTE_MONT);
+	
+	 assign doneFive = (counter_de == 7);
+	 
+	 reg  Rmodm1_enable;
+     reg  [511:0] in_Rmodm1;
+     always @(posedge clk)
+     begin
+         if(~resetn)         in_Rmodm1 <= 512'd0;
+         else if (Rmodm1_enable)   in_Rmodm1 <= arm_to_fpga_data[1023:512];
+     end
+	
+    
+	 reg  Rsqmodm1_enable;
+     reg  [511:0] in_Rsqmodm1;
+     always @(posedge clk)
+     begin
+         if(~resetn)         in_Rsqmodm1 <= 512'd0;
+         else if (Rsqmodm1_enable)   in_Rsqmodm1 <= arm_to_fpga_data[511:0];
+     end
+	
+	
+	 reg  in_exp1_enable;
+     reg  [511:0] in_exp1;
+     always @(posedge clk)
+     begin
+         if(~resetn)         in_exp1 <= 512'd0;
+         else if (in_exp1_enable)   in_exp1 <= arm_to_fpga_data[511:0];
+     end
+	 
+	
+	 reg  in_x1_enable;
+     reg  [511:0] in_x1;
+     always @(posedge clk)
+     begin
+         if(~resetn)         in_x1 <= 512'd0;
+         else if (in_x1_enable)   in_x1 <= arm_to_fpga_data[1023:512];
+     end
+	
     reg in_mul_en1;
     exponentiation exponentiation1(     .clk        (clk    ),
                            .resetn      (resetn_exp1 ),
@@ -50,61 +106,40 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                            .multiplication_enable (in_mul_en1),
                            .done        (done_exp1   ),
                            .A_result    (result_exp1));
-   
-    reg start_exp2;
-    wire done_exp2;
-    reg resetn_exp2;
-    wire[511:0]result_exp2;
-    reg [511:0]in_modulus2;
-    reg [511:0]in_Rmodm2;
-    reg [511:0]in_Rsqmodm2;
-    reg [511:0]in_exp2;
-    reg [511:0]in_x2;
-    reg in_mul_en2;
-    
-    exponentiation exponentiation2(     .clk        (clk    ),
-                          .resetn      (resetn_exp2 ),
-                          .startExponentiation       (start_exp2  ),
-                          .modulus     (in_modulus2),
-                          .Rmodm       (in_Rmodm2),
-                          .Rsquaredmodm (in_Rsqmodm2),
-                          .exponent    (in_exp2),
-                          .x           (in_x2),
-                          .multiplication_enable (in_mul_en2),
-                          .done        (done_exp2   ),
-                          .A_result    (result_exp2));
+       reg  outputExp_en;
+       wire  outExp_en;
+       reg  [511:0] outputExp;
+       always @(posedge clk)
+       begin
+           if(~resetn)         outputExp <= 512'd0;
+           else if (doneFive)   outputExp <= result_exp1;
+       end
+       
+       assign outExp_en = done_exp1 && outputExp_en;
                                    
     localparam STATE_BITS                   = 4;
     localparam STATE_WAIT_FOR_CMD           = 4'h0;
-    localparam STATE_READ_DATA_A            = 4'h1;
-    localparam STATE_READ_DATA_B            = 4'h2;
-    localparam STATE_READ_DATA_M            = 4'h3;
-    localparam STATE_COMPUTE_EXP            = 4'h4; 
-    localparam STATE_COMPUTE_MONT           = 4'h5;  
-    localparam STATE_WRITE_DATA             = 4'h6;
-    localparam STATE_ASSERT_DONE            = 4'h7;
-    localparam STATE_READ_DATA_MOD          = 4'h8;
-    localparam STATE_READ_DATA_RMOD         = 4'h9;
-    localparam STATE_READ_DATA_RSQ          = 4'ha;
-    localparam STATE_READ_DATA_X            = 4'hb;
-    localparam STATE_READ_DATA_EXP          = 4'hc;
-    localparam STATE_RESET                  = 4'hd;
+    localparam STATE_COMPUTE_EXP            = 4'h1; 
+    localparam STATE_COMPUTE_MONT           = 4'h2;  
+    localparam STATE_WRITE_DATA             = 4'h3;
+    localparam STATE_ASSERT_DONE            = 4'h4;
+    localparam STATE_READ_DATA_MOD          = 4'h5;
+    localparam STATE_READ_DATA_RSQ          = 4'h6;
+    localparam STATE_READ_DATA_EXP          = 4'h7;
+    localparam STATE_RESET                  = 4'h8;
+    localparam STATE_INIT_MONT		    = 4'h9;
+    localparam STATE_INIT_EXP		    = 4'ha;
+    localparam STATE_EXTRA_DONE         = 4'hb;
 
     reg [STATE_BITS-1:0] r_state;
     reg [STATE_BITS-1:0] next_state;
     
-    localparam CMD_READ_A                 = 32'h0;
-    localparam CMD_READ_B                 = 32'h1;
-    localparam CMD_READ_M                 = 32'h2;
-    localparam CMD_COMPUTE_EXP            = 32'h3;
-    localparam CMD_COMPUTE_MONT           = 32'h4;
-    localparam CMD_READ_EXP_MOD           = 32'h5;
-    localparam CMD_READ_EXP_RMOD          = 32'h6;
-    localparam CMD_READ_EXP_RSQ           = 32'h7;
-    localparam CMD_READ_EXP_X             = 32'h8;
-    localparam CMD_READ_EXP_EXP           = 32'h9;
-    localparam CMD_WRITE_EXP              = 32'ha;
-    localparam CMD_RESET                  = 32'hb;
+    localparam CMD_COMPUTE_EXP            = 3'h0;
+    localparam CMD_COMPUTE_MONT           = 3'h1;
+    localparam CMD_READ_MOD           	  = 3'h2;
+    localparam CMD_READ_RSQ           	  = 3'h3;
+    localparam CMD_READ_EXP               = 3'h4;
+    localparam CMD_WRITE_EXP              = 3'h5;
     /// - State Transition
 
     always @(*)
@@ -117,31 +152,20 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                 STATE_WAIT_FOR_CMD:
                     begin
                         if (arm_to_fpga_cmd_valid) begin
-                            case (arm_to_fpga_cmd)
-                                CMD_READ_A:
-                                    next_state <= STATE_READ_DATA_A;                               
-                                CMD_READ_B:
-                                    next_state <= STATE_READ_DATA_B;
-                                CMD_READ_M:
-                                    next_state <= STATE_READ_DATA_M;    
-                                CMD_READ_EXP_MOD:
+                            case (arm_to_fpga_cmd[2:0])
+                                 
+                                CMD_READ_MOD:
                                     next_state <= STATE_READ_DATA_MOD;
-                                CMD_READ_EXP_RMOD:
-                                    next_state <= STATE_READ_DATA_RMOD;
-                                CMD_READ_EXP_RSQ:
+                                CMD_READ_RSQ:
                                     next_state <= STATE_READ_DATA_RSQ;
-                                CMD_READ_EXP_X:
-                                    next_state <= STATE_READ_DATA_X;
-                                CMD_READ_EXP_EXP:
-                                    next_state <= STATE_READ_DATA_EXP;                                            
+                                CMD_READ_EXP:
+                                    next_state <= STATE_READ_DATA_EXP;   
                                 CMD_COMPUTE_EXP:                            
-                                    next_state <= STATE_COMPUTE_EXP;
+                                    next_state <= STATE_INIT_EXP;
                                 CMD_COMPUTE_MONT:                            
-                                    next_state <= STATE_COMPUTE_MONT;
+                                    next_state <= STATE_INIT_MONT;
                                 CMD_WRITE_EXP: 
                                     next_state <= STATE_WRITE_DATA;
-                                CMD_RESET:
-                                    next_state <= STATE_RESET;
                                 default:
                                     next_state <= r_state;
                             endcase
@@ -149,31 +173,27 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                             next_state <= r_state;
                     end
 
-                STATE_READ_DATA_A:
-                    next_state <= (arm_to_fpga_data_valid) ? STATE_ASSERT_DONE : r_state;
-                STATE_READ_DATA_B:
-                    next_state <= (arm_to_fpga_data_valid) ? STATE_ASSERT_DONE : r_state;
-                STATE_READ_DATA_M:
-                    next_state <= (arm_to_fpga_data_valid) ? STATE_ASSERT_DONE : r_state;
+                
                 STATE_READ_DATA_MOD:
                     next_state <= (arm_to_fpga_data_valid) ? STATE_ASSERT_DONE : r_state;  
-                STATE_READ_DATA_RMOD:
-                    next_state <= (arm_to_fpga_data_valid) ? STATE_ASSERT_DONE : r_state; 
+                
                 STATE_READ_DATA_RSQ:
                     next_state <= (arm_to_fpga_data_valid) ? STATE_ASSERT_DONE : r_state;
-                STATE_READ_DATA_X:
-                    next_state <= (arm_to_fpga_data_valid) ? STATE_ASSERT_DONE : r_state;
                 STATE_READ_DATA_EXP:
-                    next_state <= (arm_to_fpga_data_valid) ? STATE_ASSERT_DONE : r_state;     
+                    next_state <= (arm_to_fpga_data_valid) ? STATE_ASSERT_DONE : r_state;
+                  
                 STATE_COMPUTE_EXP: 
-                    next_state <= (done_exp2 &&done_exp1) ? STATE_ASSERT_DONE : r_state;
-                                        
+                    next_state <= (done_exp1) ? STATE_EXTRA_DONE: r_state;
+				STATE_INIT_MONT:
+					next_state <= STATE_COMPUTE_MONT;
+				STATE_INIT_EXP:
+					next_state <= STATE_COMPUTE_EXP;
                 STATE_COMPUTE_MONT:
-                    next_state <= (done_exp2 &&done_exp1) ? STATE_ASSERT_DONE : r_state;
-                                        
+                    next_state <= (done_exp1) ? STATE_EXTRA_DONE : r_state;
+                STATE_EXTRA_DONE:
+                    next_state <= STATE_ASSERT_DONE;
                 STATE_WRITE_DATA:
                     next_state <= (fpga_to_arm_data_ready) ? STATE_RESET : r_state;
-                    
                 STATE_ASSERT_DONE:
                     next_state <= (fpga_to_arm_done_read) ? STATE_WAIT_FOR_CMD : r_state;
                     
@@ -197,119 +217,109 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
         end
     ////////////// - Computation
 
-    reg [TX_SIZE-1:0] core_data;
+	
+	
+	 reg  core_data_enable;
+     reg  [TX_SIZE-1:0] core_data;
+     always @(posedge clk)
+     begin
+         if(~resetn)         core_data <= 1024'hdeadbeaf;
+         else if (core_data_enable)  begin
+						core_data[511:0]    <={in_modulus1,in_Rsqmodm1}//outputExp;
+		 end
+     end
+	
+	
+	
     always @(posedge(clk)) begin
         if (resetn==1'b0) begin
-            core_data <= 1024'b0;
             resetn_exp1  <= 1'b0;
-            resetn_exp2  <= 1'b0;
-            start_exp2   <= 1'b0;
-            start_exp2   <= 1'b0;
+            start_exp1   <= 1'b0;
             
         end
         else begin
             case (r_state)
             
-                STATE_READ_DATA_A: begin
-                    if (arm_to_fpga_data_valid)begin
-                                                in_mul_en1 <= 1'b1;
-                                                in_mul_en2 <= 1'b1; 
-                                                in_x1 <= arm_to_fpga_data[1023:512]; 
-                                                in_x2 <= arm_to_fpga_data[511:0];
-                                                end
-                    else
-                        core_data <= core_data;
-                     
-                end
-                STATE_READ_DATA_B: begin
-                    if (arm_to_fpga_data_valid) begin
-                                                in_Rsqmodm1 <= arm_to_fpga_data[1023:512];
-                                                in_Rsqmodm2  <= arm_to_fpga_data[511:0];
-                                                end
-                    else
-                        core_data <= core_data;                     
-                end
-                                
-                STATE_READ_DATA_M: begin
-                    if (arm_to_fpga_data_valid) 
-                                                begin
-                                                in_modulus1 <= arm_to_fpga_data[1023:512];
-                                                in_modulus2 <= arm_to_fpga_data[511:0];
-                                                end
-                    else
-                        core_data <= core_data;                     
-                end
-                
                 STATE_READ_DATA_MOD: begin
-                    if (arm_to_fpga_data_valid) begin 
-                                                in_modulus1 <= arm_to_fpga_data[511:0];
-                                                in_modulus2 <= arm_to_fpga_data[1023:512]; 
-                                                end
-                    else
-                        core_data <= core_data;
-                end
+					if (arm_to_fpga_data_valid) 	begin 
+													mod1_enable 	= 1'b1;
+													in_exp1_enable	= 1'b0;
+													in_x1_enable 	= 1'b0;1A29EF75  93A7BB0 2719FD12 335644D3 6AA76F9C  A2A610D 8A313AFC B71095A6 2467C8E9 E1AA7DF0 3A656CD2 F24168BF 24240BC6 D7452180 454911CC C18ABB22
+													Rmodm1_enable	= 1'b0;
+													Rsqmodm1_enable	= 1'b0;
+													core_data_enable= 1'b0;
+													end
+                    
+                end	
                 
-                STATE_READ_DATA_RMOD: begin
-                    if (arm_to_fpga_data_valid)begin in_Rmodm1 <= arm_to_fpga_data[511:0];
-                                                     in_Rmodm2 <= arm_to_fpga_data[1023:512]; end
-                    else
-                        core_data <= core_data;
-                end
                 
                 STATE_READ_DATA_RSQ: begin
                     if (arm_to_fpga_data_valid)      begin
-                                                     in_Rsqmodm1 <= arm_to_fpga_data[511:0];
-                                                     in_Rsqmodm2 <= arm_to_fpga_data[1023:512]; 
+                                                    							
+													mod1_enable 	= 1'b0;
+													in_exp1_enable	= 1'b0;
+													in_x1_enable 	= 1'b1;
+													Rmodm1_enable	= 1'b0;
+													Rsqmodm1_enable	= 1'b1;
+													core_data_enable= 1'b0;
                                                      end
-                    else
-                        core_data <= core_data;
+                    
                 end
                 
-                STATE_READ_DATA_X: begin
-                    if (arm_to_fpga_data_valid)     begin 
-                                                    in_x1 <= arm_to_fpga_data[511:0];
-                                                    in_x2 <= arm_to_fpga_data[1023:512];
-                                                    end
-                    else
-                        core_data <= core_data;
-                end
                 STATE_READ_DATA_EXP: begin
                     if (arm_to_fpga_data_valid)     begin 
-                                                    in_mul_en1 <= 1'b0;
-                                                    in_mul_en2 <= 1'b0;
-                                                    in_exp1 <= arm_to_fpga_data[511:0];
-                                                    in_exp2 <= arm_to_fpga_data[1023:512];
+                                                    mod1_enable1A29EF75  93A7BB0 2719FD12 335644D3 6AA76F9C  A2A610D 8A313AFC B71095A6 2467C8E9 E1AA7DF0 3A656CD2 F24168BF 24240BC6 D7452180 454911CC C18ABB22 	= 1'b0;
+													in_exp1_enable	= 1'b1;
+													in_x1_enable 	= 1'b0;
+													Rmodm1_enable	= 1'b1;
+													Rsqmodm1_enable	= 1'b0;
+													core_data_enable= 1'b0;
                                                     end
-                    else
-                        core_data <= core_data;
+                    
                 end
-                
+              
+				STATE_INIT_MONT: begin
+					in_mul_en1 <= 1'b1;
+				end
+				
+				STATE_INIT_EXP: begin
+					in_mul_en1 <= 1'b0;
+				end
+				
                 STATE_COMPUTE_EXP: begin
                     start_exp1 <= 1'b1;
-                    start_exp2 <= 1'b1; 
-                    core_data[511:0] <=result_exp1;
-                    core_data[1023:512] <=result_exp2;
+                    outputExp_en = 1'b1;  
+                    core_data_enable= 1'b0;
                     
                 end 
                 STATE_COMPUTE_MONT: begin
-                    start_exp1 <= 1'b1;
-                    start_exp2 <= 1'b1;         
-                    core_data[511:0]    <=result_exp1;
-                    core_data[1023:512] <=result_exp2;                           
+                    start_exp1 <= 1'b1; 
+                    outputExp_en = 1'b1;      
+                    core_data_enable= 1'b0;                           
                 end
                 STATE_ASSERT_DONE: begin
                     resetn_exp1 <= 1'b1;
-                    resetn_exp2 <= 1'b1;
+                    outputExp_en = 1'b0;
+					core_data_enable= 1'b0;
+                end
+                STATE_EXTRA_DONE: begin
+                    outputExp_en= 1'b0;
+                    core_data_enable= 1'b1;
                 end
                 STATE_RESET: begin
                     start_exp1 <= 1'b0;
-                    start_exp2 <= 1'b0;
+                    outputExp_en= 1'b0;
                     resetn_exp1 <= 1'b0;
-                    resetn_exp2  <=1'b0;
-                    
-                    end
+					core_data_enable= 1'b0;
+                 end
                 default: begin
-                    core_data <= core_data;
+					core_data_enable= 1'b0;
+					mod1_enable 	= 1'b0;
+			        in_exp1_enable	= 1'b0;
+					in_x1_enable 	= 1'b0;
+					Rmodm1_enable	= 1'b0;
+					Rsqmodm1_enable	= 1'b0;
+					outputExp_en    = 1'b0;
                 end
                 
             endcase
@@ -327,7 +337,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
 
     always @(posedge(clk)) begin
         r_fpga_to_arm_data_valid = (r_state==STATE_WRITE_DATA);
-        r_arm_to_fpga_data_ready = (r_state==STATE_READ_DATA_A|| r_state == STATE_READ_DATA_B || r_state==STATE_READ_DATA_M || r_state==STATE_READ_DATA_MOD || r_state==STATE_READ_DATA_EXP || r_state==STATE_READ_DATA_X || r_state==STATE_READ_DATA_RMOD || r_state==STATE_READ_DATA_RSQ);
+        r_arm_to_fpga_data_ready = (r_state==STATE_READ_DATA_MOD || r_state==STATE_READ_DATA_EXP || r_state==STATE_READ_DATA_RSQ);
     end
     
     assign fpga_to_arm_data_valid = r_fpga_to_arm_data_valid;
@@ -349,6 +359,6 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     // The four LEDs on the board can be used as debug signals.
     // Here they are used to check the state transition.
 
-    assign leds             = {1'b0,r_state};
+    assign leds             = {4'd4};
 
 endmodule
