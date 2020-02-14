@@ -37,6 +37,8 @@ module tb_rsa_wrapper();
     reg  [1023:0] in_m;
     reg  [1023:0] Rmodm;
     reg  [1023:0] Rsquaredmodm;
+    reg  [511:0] expected;
+    reg  result_ok;
         
     rsa_wrapper rsa_wrapper(
         .clk                    (clk                    ),
@@ -177,7 +179,8 @@ task send_data_to_hw;
                 
         Rsquaredmodm            <=  1024'h733f6233b70f1ff7bc7ea9a38d69c2d083bec7c1d73000a3c36a6b4699300aff43a2c4da76786ac6878e16ad896b861ad351008baa901886630148792eca57ad;
         Rsquaredmodm[1023:512]  <=  1024'h733f6233b70f1ff7bc7ea9a38d69c2d083bec7c1d73000a3c36a6b4699300aff43a2c4da76786ac6878e16ad896b861ad351008baa901886630148792eca57ad;
-               
+         
+        expected     <=  512'hbdb2a4a461dbff5011756139d13f5446a7eb6c9979b55e8fa687b6edaa842d502fc159a825fe144175f9b5616000e5c971e67f150f5135dd5d6fd220f7400189;       
         #`CLK_PERIOD;
 
         ///////////////////// START EXAMPLE  /////////////////////
@@ -266,8 +269,12 @@ $display("Test exponentiation input X %h", in_x);
                 
                 //// --- Print the array contents
         
-                $display("Output is      %h", output_data_exp);        
-
+                $display("Output is      %h", output_data_exp[511:0]);        
+                $display("result expected  =%x", expected);
+                $display("error            =%x", expected-output_data_exp[511:0]);
+                
+                result_ok = (expected==output_data_exp[511:0]);
+                $display("result OK?       =%x", result_ok);
         ///////////////////// END EXAMPLE  /////////////////////  
         
         $finish;

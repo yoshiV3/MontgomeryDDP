@@ -55,13 +55,28 @@ module tb_expontation();
     initial begin
         #`RESET_TIME
         $display("\exponentation with testvector 1");
-        in_x         <=  512'h87b21d93a10f35511c8d56264a6f95f0245d8004e0d3557c7ec2b396b4ed3cabda34f88e0c8154e9ffab2761e626a720eef1da7ee31ce6c31fcdeaec38eb9589;
-        in_e         <=  512'haf;
-        in_m         <=  512'hd97a21880ab3b85681ef6162732ffcd3cf303982004568f7fba23d0d411ced4080fd567efcd793b308936f7522ead3c53ad80440edd50088935d2a3d9b9c5885;
-        expected     <=  512'hbdb2a4a461dbff5011756139d13f5446a7eb6c9979b55e8fa687b6edaa842d502fc159a825fe144175f9b5616000e5c971e67f150f5135dd5d6fd220f7400189;
-        Rmodm        <=  512'h2685de77f54c47a97e109e9d8cd0032c30cfc67dffba9708045dc2f2bee312bf7f02a98103286c4cf76c908add152c3ac527fbbf122aff776ca2d5c26463a77b;
-        Rsquaredmodm <=  512'h733f6233b70f1ff7bc7ea9a38d69c2d083bec7c1d73000a3c36a6b4699300aff43a2c4da76786ac6878e16ad896b861ad351008baa901886630148792eca57ad;
-        multiply     <= 1'b0;
+        
+        //testvector 2020
+        
+        in_x         <=  512'hda8f5c927d37bf2ac65743ee08ebc8667c330d8c28b8d34ba6a7e1fe6055d81498d8b668012ac09f1e4a56c1933a4d1e1b2479d5a209116b9704268dc33a1372;
+        in_e         <=  512'hf5;
+        in_m         <=  512'hba3e64477e930dcc5ebcfd28c2d12d122208ae0edaf47fed345d17b62405c20c7eb9a0ca6396f35db871a75f05e43d3b3f771c3f4eba864e3106f880acbb31d3 ;
+        expected     <=  512'hab4940220f1246165dc7889ccd945786d1ffe2756df70cbc0958480300d2c79e51a9b3482d74b4fa90d622f6dad5a7dee6c35dbe8f12c4bf5eb210829770ac09;
+        Rmodm        <=  512'h45c19bb8816cf233a14302d73d2ed2edddf751f1250b8012cba2e849dbfa3df381465f359c690ca2478e58a0fa1bc2c4c088e3c0b14579b1cef9077f5344ce2d;
+        Rsquaredmodm <=  512'h7a07c54ae634d17d06bed9332932823257bb73745a0be9453069a22c45bcc3db2342077752bb20d9d3e82cc26de56f89247d6b24e696661ee4225dcd3a4465c5;
+        multiply     <= 1'b0;       
+        
+        
+        
+        
+        
+//        in_x         <=  512'h87b21d93a10f35511c8d56264a6f95f0245d8004e0d3557c7ec2b396b4ed3cabda34f88e0c8154e9ffab2761e626a720eef1da7ee31ce6c31fcdeaec38eb9589;
+//        in_e         <=  512'haf;
+//        in_m         <=  512'hd97a21880ab3b85681ef6162732ffcd3cf303982004568f7fba23d0d411ced4080fd567efcd793b308936f7522ead3c53ad80440edd50088935d2a3d9b9c5885;
+//        expected     <=  512'hbdb2a4a461dbff5011756139d13f5446a7eb6c9979b55e8fa687b6edaa842d502fc159a825fe144175f9b5616000e5c971e67f150f5135dd5d6fd220f7400189;
+//        Rmodm        <=  512'h2685de77f54c47a97e109e9d8cd0032c30cfc67dffba9708045dc2f2bee312bf7f02a98103286c4cf76c908add152c3ac527fbbf122aff776ca2d5c26463a77b;
+//        Rsquaredmodm <=  512'h733f6233b70f1ff7bc7ea9a38d69c2d083bec7c1d73000a3c36a6b4699300aff43a2c4da76786ac6878e16ad896b861ad351008baa901886630148792eca57ad;
+//        multiply     <= 1'b0;
         
 //        in_x         <=  512'h88583ec8b11db437837fe11aca3e7648c6d88dade783e643465a82a3294e190b1872bc8499caf3e87fd9b9ff5b6a839f65201df4978f53c298c8f398a32bdf2b;
 //        in_e         <=  512'ha0;
@@ -99,6 +114,7 @@ module tb_expontation();
         $display("result expected  =%x", expected);
         $display("error            =%x", expected-result);
         result_ok = (expected==result);
+        $display("result OK?       =%x", result_ok);
         #`CLK_PERIOD;   
         
         $finish;
