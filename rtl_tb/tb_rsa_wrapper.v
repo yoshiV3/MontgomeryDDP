@@ -33,7 +33,7 @@ module tb_rsa_wrapper();
     reg  [1023:0] output_data_exp;
     reg  [1023:0] in_e;
     reg  [1023:0] in_m;
-    reg  [1023:0] Rsquaredmodm;
+    reg  [1023:0] in_Rsquaredmodm;
         
     rsa_wrapper rsa_wrapper(
         .clk                    (clk                    ),
@@ -139,7 +139,7 @@ task send_data_to_hw;
     localparam CMD_COMPUTE_EXP            = 32'h0;
     localparam CMD_COMPUTE_MONT           = 32'h1;
     localparam CMD_READ_MOD           	  = 32'h2; //for both mods
-    localparam CMD_READ_RSQ		  = 32'h3; // for [x rsq] or [A B]
+    localparam CMD_READ_RSQ		          = 32'h3; // for [x rsq] or [A B]
     localparam CMD_READ_EXP           	  = 32'h4; // for [rmod  exp]
     localparam CMD_WRITE                  = 32'h5;
     
@@ -155,7 +155,7 @@ task send_data_to_hw;
 
 
 
-        in_Rsquaredmodm          <= 512'h733f6233b70f1ff7bc7ea9a38d69c2d083bec7c1d73000a3c36a6b4699300aff43a2c4da76786ac6878e16ad896b861ad351008baa901886630148792eca57ad;
+        in_Rsquaredmodm            <=  512'h733f6233b70f1ff7bc7ea9a38d69c2d083bec7c1d73000a3c36a6b4699300aff43a2c4da76786ac6878e16ad896b861ad351008baa901886630148792eca57ad;
         in_Rsquaredmodm[1023:512]  <=  512'h87b21d93a10f35511c8d56264a6f95f0245d8004e0d3557c7ec2b396b4ed3cabda34f88e0c8154e9ffab2761e626a720eef1da7ee31ce6c31fcdeaec38eb9589;
                 
         in_e            <=  512'haf;
@@ -216,9 +216,9 @@ $display("Test exponentiation ");
                 send_data_to_hw(in_e);
                 waitdone();
              
-                $display("Sending read command for Rsqmod %h" ,Rsquaredmodm);
+                $display("Sending read command for Rsqmod %h" ,in_Rsquaredmodm);
                 send_cmd_to_hw(CMD_READ_RSQ);
-                send_data_to_hw(Rsquaredmodm);
+                send_data_to_hw(in_Rsquaredmodm);
                 waitdone();
         
                 //// --- Perform the compute operation
