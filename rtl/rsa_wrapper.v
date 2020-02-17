@@ -42,24 +42,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
          else if (mod1_enable)   in_modulus1 <= arm_to_fpga_data[511:0];
      end
 	
-	
-	
-	 reg [9:0] counter_de;
-	 wire countEn;
-	 wire doneFive;
-     always @(posedge clk)
-     begin
-     if(~resetn)
-      counter_de <= 10'd0;
-     else if(countEn)
-      counter_de <= counter_de + 10'd1;
-     end
      
-
-     
-
-	
-	 assign doneFive = (counter_de == 7);
 	 
 	 reg  Rmodm1_enable;
      reg  [511:0] in_Rmodm1;
@@ -108,16 +91,9 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                            .multiplication_enable (in_mul_en1),
                            .done        (done_exp1   ),
                            .A_result    (result_exp1));
-       reg  outputExp_en;
-       wire  outExp_en;
-       reg  [511:0] outputExp;
-       always @(posedge clk)
-       begin
-           if(~resetn)         outputExp <= 512'd0;
-           else if (doneFive)   outputExp <= result_exp1;
-       end
+
        
-       assign outExp_en = done_exp1 && outputExp_en;
+       //assign outExp_en = done_exp1 && outputExp_en;
                                    
     localparam STATE_BITS                   = 4;
     localparam STATE_WAIT_FOR_CMD           = 4'h0;
@@ -131,12 +107,9 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     localparam STATE_RESET                  = 4'h8;
     localparam STATE_INIT_MONT		    = 4'h9;
     localparam STATE_INIT_EXP		    = 4'ha;
-    localparam STATE_EXTRA_DONE         = 4'hb;
 
     reg [STATE_BITS-1:0] r_state;
-    reg [STATE_BITS-1:0] next_state;     
-    
-    assign countEn = (r_state == STATE_COMPUTE_MONT);
+    reg [STATE_BITS-1:0] next_state;
     
     localparam CMD_COMPUTE_EXP            = 3'h0;
     localparam CMD_COMPUTE_MONT           = 3'h1;
@@ -185,17 +158,14 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                     next_state <= (arm_to_fpga_data_valid) ? STATE_ASSERT_DONE : r_state;
                 STATE_READ_DATA_EXP:
                     next_state <= (arm_to_fpga_data_valid) ? STATE_ASSERT_DONE : r_state;
-                  
-                STATE_COMPUTE_EXP: 
-                    next_state <= (done_exp1) ? STATE_EXTRA_DONE: r_state;
+                STATE_COMPUTE_EXP:
+                    next_state <= (done_exp1) ? STATE_ASSERT_DONE : r_state;
 				STATE_INIT_MONT:
 					next_state <= STATE_COMPUTE_MONT;
 				STATE_INIT_EXP:
 					next_state <= STATE_COMPUTE_EXP;
                 STATE_COMPUTE_MONT:
-                    next_state <= (done_exp1) ? STATE_EXTRA_DONE : r_state;
-                STATE_EXTRA_DONE:
-                    next_state <= STATE_ASSERT_DONE;
+                    next_state <= (done_exp1) ? STATE_ASSERT_DONE : r_state;
                 STATE_WRITE_DATA:
                     next_state <= (fpga_to_arm_data_ready) ? STATE_RESET : r_state;
                 STATE_ASSERT_DONE:
@@ -228,8 +198,8 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
      always @(posedge clk)
      begin
          if(~resetn)         core_data <= 1024'hdeadbeaf;
-         else if (core_data_enable)  begin
-						core_data[511:0]    <={in_modulus1,in_Rsqmodm1};//outputExp;
+         else if (done_exp1)  begin
+						core_data[511:0]    <=result_exp1;
 		 end
      end
 	
@@ -246,12 +216,12 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
             
                 STATE_READ_DATA_MOD: begin
 					if (arm_to_fpga_data_valid) 	begin 
-													mod1_enable 	= 1'b1;
-													in_exp1_enable	= 1'b0;
-													in_x1_enable 	= 1'b0;
-													Rmodm1_enable	= 1'b0;
-													Rsqmodm1_enable	= 1'b0;
-													core_data_enable= 1'b0;
+													mod1_enable 	<= 1'b1;
+													in_exp1_enable	<= 1'b0;
+													in_x1_enable 	<= 1'b0;
+													Rmodm1_enable	<= 1'b0;
+													Rsqmodm1_enable	<= 1'b0;
+													core_data_enable<= 1'b0;
 													end
                     
                 end	
@@ -260,24 +230,24 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                 STATE_READ_DATA_RSQ: begin
                     if (arm_to_fpga_data_valid)      begin
                                                     							
-													mod1_enable 	= 1'b0;
-													in_exp1_enable	= 1'b0;
-													in_x1_enable 	= 1'b1;
-													Rmodm1_enable	= 1'b0;
-													Rsqmodm1_enable	= 1'b1;
-													core_data_enable= 1'b0;
+													mod1_enable 	<= 1'b0;
+													in_exp1_enable	<= 1'b0;
+													in_x1_enable 	<= 1'b1;
+													Rmodm1_enable	<= 1'b0;
+													Rsqmodm1_enable	<= 1'b1;
+													core_data_enable<= 1'b0;
                                                      end
                     
                 end
                 
                 STATE_READ_DATA_EXP: begin
                     if (arm_to_fpga_data_valid)     begin 
-                                                    mod1_enable  	= 1'b0;
-													in_exp1_enable	= 1'b1;
-													in_x1_enable 	= 1'b0;
-													Rmodm1_enable	= 1'b1;
-													Rsqmodm1_enable	= 1'b0;
-													core_data_enable= 1'b0;
+                                                    mod1_enable  	<= 1'b0;
+													in_exp1_enable	<= 1'b1;
+													in_x1_enable 	<= 1'b0;
+													Rmodm1_enable	<= 1'b1;
+													Rsqmodm1_enable	<= 1'b0;
+													core_data_enable<= 1'b0;
                                                     end
                     
                 end
@@ -292,38 +262,30 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
 				
                 STATE_COMPUTE_EXP: begin
                     start_exp1 <= 1'b1;
-                    outputExp_en = 1'b1;  
-                    core_data_enable= 1'b0;
+                    core_data_enable<= 1'b1;
                     
                 end 
                 STATE_COMPUTE_MONT: begin
-                    start_exp1 <= 1'b1; 
-                    outputExp_en = 1'b1;      
-                    core_data_enable= 1'b0;                           
+                    start_exp1 <= 1'b1;     
+                    core_data_enable<= 1'b1;                           
                 end
                 STATE_ASSERT_DONE: begin
                     resetn_exp1 <= 1'b1;
-                    outputExp_en = 1'b0;
-					core_data_enable= 1'b0;
+					core_data_enable<= 1'b0;
                 end
-                STATE_EXTRA_DONE: begin
-                    outputExp_en= 1'b0;
-                    core_data_enable= 1'b1;
-                end
+                
                 STATE_RESET: begin
                     start_exp1 <= 1'b0;
-                    outputExp_en= 1'b0;
                     resetn_exp1 <= 1'b0;
-					core_data_enable= 1'b0;
+					core_data_enable<= 1'b0;
                  end
                 default: begin
-					core_data_enable= 1'b0;
-					mod1_enable 	= 1'b0;
-			        in_exp1_enable	= 1'b0;
-					in_x1_enable 	= 1'b0;
-					Rmodm1_enable	= 1'b0;
-					Rsqmodm1_enable	= 1'b0;
-					outputExp_en    = 1'b0;
+					core_data_enable<= 1'b0;
+					mod1_enable 	<= 1'b0;
+			        in_exp1_enable	<= 1'b0;
+					in_x1_enable 	<= 1'b0;
+					Rmodm1_enable	<= 1'b0;
+					Rsqmodm1_enable	<= 1'b0;
                 end
                 
             endcase
@@ -340,8 +302,8 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     reg r_arm_to_fpga_data_ready;
 
     always @(posedge(clk)) begin
-        r_fpga_to_arm_data_valid = (r_state==STATE_WRITE_DATA);
-        r_arm_to_fpga_data_ready = (r_state==STATE_READ_DATA_MOD || r_state==STATE_READ_DATA_EXP || r_state==STATE_READ_DATA_RSQ);
+        r_fpga_to_arm_data_valid <= (r_state==STATE_WRITE_DATA);
+        r_arm_to_fpga_data_ready <= (r_state==STATE_READ_DATA_MOD || r_state==STATE_READ_DATA_EXP || r_state==STATE_READ_DATA_RSQ);
     end
     
     assign fpga_to_arm_data_valid = r_fpga_to_arm_data_valid;
