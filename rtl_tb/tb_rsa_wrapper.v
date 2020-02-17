@@ -29,16 +29,11 @@ module tb_rsa_wrapper();
 
     reg  [1023:0] input_data_a;
     reg  [1023:0] input_data_m;
-    reg  [1023:0] input_data_b;
     reg  [1023:0] output_data;
     reg  [1023:0] output_data_exp;
-    reg  [1023:0] in_x;
     reg  [1023:0] in_e;
     reg  [1023:0] in_m;
-    reg  [1023:0] Rmodm;
     reg  [1023:0] Rsquaredmodm;
-    reg  [511:0] expected;
-    reg  result_ok;
         
     rsa_wrapper rsa_wrapper(
         .clk                    (clk                    ),
@@ -140,18 +135,13 @@ task send_data_to_hw;
     end 
     endtask
 
-    localparam CMD_READ_A                 = 32'h0;
-    localparam CMD_READ_B                 = 32'h1;
-    localparam CMD_READ_M                 = 32'h2;
-    localparam CMD_COMPUTE_EXP            = 32'h3;
-    localparam CMD_COMPUTE_MONT           = 32'h4;
-    localparam CMD_READ_EXP_MOD           = 32'h5;
-    localparam CMD_READ_EXP_RMOD          = 32'h6;
-    localparam CMD_READ_EXP_RSQ           = 32'h7;
-    localparam CMD_READ_EXP_X             = 32'h8;
-    localparam CMD_READ_EXP_EXP           = 32'h9;
-    localparam CMD_WRITE                  = 32'ha;
-    localparam CMD_RESET_MONT             = 32'hb;
+	
+    localparam CMD_COMPUTE_EXP            = 32'h0;
+    localparam CMD_COMPUTE_MONT           = 32'h1;
+    localparam CMD_READ_MOD           	  = 32'h2; //for both mods
+    localparam CMD_READ_RSQ		  = 32'h3; // for [x rsq] or [A B]
+    localparam CMD_READ_EXP           	  = 32'h4; // for [rmod  exp]
+    localparam CMD_WRITE                  = 32'h5;
     
     initial begin
 
@@ -159,49 +149,37 @@ task send_data_to_hw;
         
         // Your task: 
         // Design a testbench to test your accelerator using the tasks defined above: send_cmd_to_hw, send_data_to_hw, read_data_from_hw, waitdone
-        input_data_a <= 1024'h87b21d93a10f35511c8d56264a6f95f0245d8004e0d3557c7ec2b396b4ed3cabda34f88e0c8154e9ffab2761e626a720eef1da7ee31ce6c31fcdeaec38eb958987b21d93a10f35511c8d56264a6f95f0245d8004e0d3557c7ec2b396b4ed3cabda34f88e0c8154e9ffab2761e626a720eef1da7ee31ce6c31fcdeaec38eb9589;
-        input_data_b <= 1024'h901702c94e8d7f3c733aafa46a6b43948148fd2f08761b134bc6815c3a69f4fc4ca4cbec55a2e1e70178549683bf79db5fec9631717e6ae69a5ea5c9eb2a118d901702c94e8d7f3c733aafa46a6b43948148fd2f08761b134bc6815c3a69f4fc4ca4cbec55a2e1e70178549683bf79db5fec9631717e6ae69a5ea5c9eb2a118d;
-        input_data_m <= 1024'hf8f635bfae6507fc726853e48b8ff18f8037f58fbef63debba0381f2a7da936679f14a270b1129a730d905d283459a275b4dd75470965dfa6386b5321563997df8f635bfae6507fc726853e48b8ff18f8037f58fbef63debba0381f2a7da936679f14a270b1129a730d905d283459a275b4dd75470965dfa6386b5321563997d;
+        input_data_a[1023:512] <= 512'h87b21d93a10f35511c8d56264a6f95f0245d8004e0d3557c7ec2b396b4ed3cabda34f88e0c8154e9ffab2761e626a720eef1da7ee31ce6c31fcdeaec38eb9589;
+        input_data_a <= 512'h901702c94e8d7f3c733aafa46a6b43948148fd2f08761b134bc6815c3a69f4fc4ca4cbec55a2e1e70178549683bf79db5fec9631717e6ae69a5ea5c9eb2a118d;
+        input_data_m <= 512'hf8f635bfae6507fc726853e48b8ff18f8037f58fbef63debba0381f2a7da936679f14a270b1129a730d905d283459a275b4dd75470965dfa6386b5321563997d;
 
 
 
-        in_x            <=  1024'h87b21d93a10f35511c8d56264a6f95f0245d8004e0d3557c7ec2b396b4ed3cabda34f88e0c8154e9ffab2761e626a720eef1da7ee31ce6c31fcdeaec38eb9589;
-        in_x[1023:512]  <=  1024'h87b21d93a10f35511c8d56264a6f95f0245d8004e0d3557c7ec2b396b4ed3cabda34f88e0c8154e9ffab2761e626a720eef1da7ee31ce6c31fcdeaec38eb9589;
+        in_Rsquaredmodm          <= 512'h733f6233b70f1ff7bc7ea9a38d69c2d083bec7c1d73000a3c36a6b4699300aff43a2c4da76786ac6878e16ad896b861ad351008baa901886630148792eca57ad;
+        in_Rsquaredmodm[1023:512]  <=  512'h87b21d93a10f35511c8d56264a6f95f0245d8004e0d3557c7ec2b396b4ed3cabda34f88e0c8154e9ffab2761e626a720eef1da7ee31ce6c31fcdeaec38eb9589;
                 
-        in_e            <=  1024'haf;
-        in_e[1023:512]  <=  1024'haf;
+        in_e            <=  512'haf;
         
-        in_m            <=  1024'hd97a21880ab3b85681ef6162732ffcd3cf303982004568f7fba23d0d411ced4080fd567efcd793b308936f7522ead3c53ad80440edd50088935d2a3d9b9c5885;
-        in_m[1023:512]  <=  1024'hd97a21880ab3b85681ef6162732ffcd3cf303982004568f7fba23d0d411ced4080fd567efcd793b308936f7522ead3c53ad80440edd50088935d2a3d9b9c5885;
-                
-        Rmodm           <=  1024'h2685de77f54c47a97e109e9d8cd0032c30cfc67dffba9708045dc2f2bee312bf7f02a98103286c4cf76c908add152c3ac527fbbf122aff776ca2d5c26463a77b;
-        Rmodm[1023:512] <=  1024'h2685de77f54c47a97e109e9d8cd0032c30cfc67dffba9708045dc2f2bee312bf7f02a98103286c4cf76c908add152c3ac527fbbf122aff776ca2d5c26463a77b;
-                
-        Rsquaredmodm            <=  1024'h733f6233b70f1ff7bc7ea9a38d69c2d083bec7c1d73000a3c36a6b4699300aff43a2c4da76786ac6878e16ad896b861ad351008baa901886630148792eca57ad;
-        Rsquaredmodm[1023:512]  <=  1024'h733f6233b70f1ff7bc7ea9a38d69c2d083bec7c1d73000a3c36a6b4699300aff43a2c4da76786ac6878e16ad896b861ad351008baa901886630148792eca57ad;
-         
-        expected     <=  512'hbdb2a4a461dbff5011756139d13f5446a7eb6c9979b55e8fa687b6edaa842d502fc159a825fe144175f9b5616000e5c971e67f150f5135dd5d6fd220f7400189;       
+        in_m            <=  512'hd97a21880ab3b85681ef6162732ffcd3cf303982004568f7fba23d0d411ced4080fd567efcd793b308936f7522ead3c53ad80440edd50088935d2a3d9b9c5885;
+               
+        
+        in_e[1023:512] <=  512'h2685de77f54c47a97e109e9d8cd0032c30cfc67dffba9708045dc2f2bee312bf7f02a98103286c4cf76c908add152c3ac527fbbf122aff776ca2d5c26463a77b;
+             
         #`CLK_PERIOD;
 
         ///////////////////// START EXAMPLE  /////////////////////
         
         //// --- Send the read command and transfer input data to FPGA
 
-        $display("Test montgomery input a %h", input_data_a);
-        $display("with input b %h", input_data_b);
+        $display("Test montgomery input a  and b %h", input_data_a);
         $display("with mod m  %h", input_data_m);
         $display("Sending read command for A");
-        send_cmd_to_hw(CMD_READ_A);
+        send_cmd_to_hw(CMD_READ_RSQ);
         send_data_to_hw(input_data_a);
         waitdone();
         
-        $display("Sending read command for B");
-        send_cmd_to_hw(CMD_READ_B);
-        send_data_to_hw(input_data_b);
-        waitdone();
-                
         $display("Sending read command for M");
-        send_cmd_to_hw(CMD_READ_M);
+        send_cmd_to_hw(CMD_READ_MOD);
         send_data_to_hw(input_data_m);
         waitdone();
 
@@ -225,30 +203,21 @@ task send_data_to_hw;
 
         $display("Output is      %h", output_data);
                   
-$display("Test exponentiation input X %h", in_x);
+$display("Test exponentiation ");
                 
-                $display("Sending read command for x %h" , in_x );
-                send_cmd_to_hw(CMD_READ_EXP_X);
-                send_data_to_hw(in_x);
-                waitdone();
                 
                 $display("Sending read command for M %h" ,in_m);
-                send_cmd_to_hw(CMD_READ_EXP_MOD);
+                send_cmd_to_hw(CMD_READ_MOD);
                 send_data_to_hw(in_m);
                 waitdone();
                         
                 $display("Sending read command for exp %h" ,in_e);
-                send_cmd_to_hw(CMD_READ_EXP_EXP);
+                send_cmd_to_hw(CMD_READ_EXP);
                 send_data_to_hw(in_e);
                 waitdone();
-                
-                $display("Sending read command for rmodm %h" ,Rmodm);
-                send_cmd_to_hw(CMD_READ_EXP_RMOD);
-                send_data_to_hw(Rmodm);
-                waitdone();
-                
+             
                 $display("Sending read command for Rsqmod %h" ,Rsquaredmodm);
-                send_cmd_to_hw(CMD_READ_EXP_RSQ);
+                send_cmd_to_hw(CMD_READ_RSQ);
                 send_data_to_hw(Rsquaredmodm);
                 waitdone();
         
@@ -269,12 +238,8 @@ $display("Test exponentiation input X %h", in_x);
                 
                 //// --- Print the array contents
         
-                $display("Output is      %h", output_data_exp[511:0]);        
-                $display("result expected  =%x", expected);
-                $display("error            =%x", expected-output_data_exp[511:0]);
-                
-                result_ok = (expected==output_data_exp[511:0]);
-                $display("result OK?       =%x", result_ok);
+                $display("Output is      %h", output_data_exp);        
+
         ///////////////////// END EXAMPLE  /////////////////////  
         
         $finish;
