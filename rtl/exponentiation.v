@@ -7,9 +7,9 @@ module exponentiation(
     input startExponentiation,
     input [511:0] modulus,
     input [511:0] Rmodm, // We assume these stick around for at least the first state
-    input [511:0] Rsquaredmodm,
+    input [511:0] Rsquaredmodm, //aka B (the second term) in the multiplication
     input [511:0] exponent,
-    input [511:0] x,
+    input [511:0] x, // aka A (the first term) in the multiplication
     //Montgomery Multiplication mode
     input         multiplication_enable,
     
@@ -227,6 +227,7 @@ module exponentiation(
                 R2_en <= 1'b0;            
             end
             
+            // STATE6 IS OUR MULTIPLICATION!
             else if (state ==3'd6) //use state 1 and remove this if you want to save space
                 begin
                     exponent_en <= 1'b0;// honestly don't care, but whatever
