@@ -152,8 +152,8 @@ task send_data_to_hw;
         
         // Your task: 
         // Design a testbench to test your accelerator using the tasks defined above: send_cmd_to_hw, send_data_to_hw, read_data_from_hw, waitdone
-        input_data_a[1023:512] <= 512'h2;//cc3abd06ff8100f135535b982344d1ae1abc9c78b05ceb6e8fde131f23ea03704f6b1d7cf231b13d43692d0b5e01f829bc48e383bd046aeaddb63768c405987d;
-        input_data_a[511:0] <= 512'h1;//d26eb20cba1484f9e844b8a13fccb76b56f7cf02e6192d787c56da163d6dbb9f43fbfc0a4d4be1a7303806455a605906ad14cab5d7f5ba375ff7466b3e2681ab;
+        input_data_a[1023:512] <= 512'hcc3abd06ff8100f135535b982344d1ae1abc9c78b05ceb6e8fde131f23ea03704f6b1d7cf231b13d43692d0b5e01f829bc48e383bd046aeaddb63768c405987d;
+        input_data_a[511:0] <= 512'hd26eb20cba1484f9e844b8a13fccb76b56f7cf02e6192d787c56da163d6dbb9f43fbfc0a4d4be1a7303806455a605906ad14cab5d7f5ba375ff7466b3e2681ab;
         input_data_m <= 512'ha1223da67930dd73e1dd07fee62e4bfad65059e30de1fdd96f95e899de1604259a13b36f8a8f19f661b3ab0ac0e49eeaebc73f9c2c8ba9b0b5d635816d379c4d;
         multiply_expected <= 512'h5764fd9614a860b0f2e8015678119047e8c22124a441e9db6ede6e177fc5173d09cd96258a3c317f5a3c3ef9d86b96cc9e3fa154b238d3abd80dc2a35f22cdec;
         
@@ -219,46 +219,46 @@ task send_data_to_hw;
         result_ok = (multiply_expected==output_data[511:0]);
         $display("result OK?       =%x", result_ok);   
                   
-//$display("Test exponentiation ");
+$display("Test exponentiation ");
                 
                 
-//                $display("Sending read command for M %h" ,in_m);
-//                send_cmd_to_hw(CMD_READ_MOD);
-//                send_data_to_hw(in_m);
-//                waitdone();
+                $display("Sending read command for M %h" ,in_m);
+                send_cmd_to_hw(CMD_READ_MOD);
+                send_data_to_hw(in_m);
+                waitdone();
                         
-//                $display("Sending read command for exp %h" ,in_e);
-//                send_cmd_to_hw(CMD_READ_EXP);
-//                send_data_to_hw(in_e);
-//                waitdone();
+                $display("Sending read command for exp %h" ,in_e);
+                send_cmd_to_hw(CMD_READ_EXP);
+                send_data_to_hw(in_e);
+                waitdone();
              
-//                $display("Sending read command for Rsqmod %h" ,in_Rsquaredmodm);
-//                send_cmd_to_hw(CMD_READ_RSQ);
-//                send_data_to_hw(in_Rsquaredmodm);
-//                waitdone();
+                $display("Sending read command for Rsqmod %h" ,in_Rsquaredmodm);
+                send_cmd_to_hw(CMD_READ_RSQ);
+                send_data_to_hw(in_Rsquaredmodm);
+                waitdone();
         
-//                //// --- Perform the compute operation
+                //// --- Perform the compute operation
         
-//                $display("Sending compute command");
-//                send_cmd_to_hw(CMD_COMPUTE_EXP);
-//                waitdone();
+                $display("Sending compute command");
+                send_cmd_to_hw(CMD_COMPUTE_EXP);
+                waitdone();
         
         
-//                //// --- Send write command and transfer output data from FPGA
+                //// --- Send write command and transfer output data from FPGA
                 
-//                $display("Sending write command");
-//                send_cmd_to_hw(CMD_WRITE);
-//                read_data_from_hw(output_data_exp);
-//                waitdone();
+                $display("Sending write command");
+                send_cmd_to_hw(CMD_WRITE);
+                read_data_from_hw(output_data_exp);
+                waitdone();
         
                 
-//                //// --- Print the array contents
-//                $display("Output is      %h", output_data_exp[511:0]);        
-//                $display("result expected  =%x", expected);
-//                $display("error            =%x", expected-output_data_exp[511:0]);
+                //// --- Print the array contents
+                $display("Output is      %h", output_data_exp[511:0]);        
+                $display("result expected  =%x", expected);
+                $display("error            =%x", expected-output_data_exp[511:0]);
                     
-//                result_ok = (expected==output_data_exp[511:0]);
-//                $display("result OK?       =%x", result_ok);      
+                result_ok = (expected==output_data_exp[511:0]);
+                $display("result OK?       =%x", result_ok);      
 
         ///////////////////// END EXAMPLE  /////////////////////  
         
