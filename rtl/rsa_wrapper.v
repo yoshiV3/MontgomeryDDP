@@ -211,7 +211,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
      if (~resetn) begin
         debugCounter <= 9'b0;
      end
-     else
+     else if (start_exp1)
      begin
         debugCounter = debugCounter + 1;
      end
@@ -311,6 +311,9 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
 													Rmodm1_enable	<= 1'b0;
 													Rsqmodm1_enable	<= 1'b0;
 													core_data_enable<= 1'b0;
+													start_exp1 <= 1'b0;
+                                                    resetn_exp1 <= 1'b0;
+													in_mul_en1 <= 1'b0;
 													end
                     
                 end	
@@ -324,7 +327,10 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
 													in_x1_enable 	<= 1'b1;
 													Rmodm1_enable	<= 1'b0;
 													Rsqmodm1_enable	<= 1'b1;
+													start_exp1 <= 1'b0;
+                                                    resetn_exp1 <= 1'b0;
 													core_data_enable<= 1'b0;
+                                                    in_mul_en1 <= 1'b0;
                                                      end
                     
                 end
@@ -336,45 +342,94 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
 													in_x1_enable 	<= 1'b0;
 													Rmodm1_enable	<= 1'b1;
 													Rsqmodm1_enable	<= 1'b0;
+													start_exp1 <= 1'b0;
+                                                    resetn_exp1 <= 1'b0;
 													core_data_enable<= 1'b0;
+                                                    in_mul_en1 <= 1'b0;
                                                     end
                     
                 end
               
 				STATE_INIT_MONT: begin
-					in_mul_en1 <= 1'b1;
+                    mod1_enable     <= 1'b0;
+                    in_exp1_enable    <= 1'b0;
+                    in_x1_enable     <= 1'b0;
+                    Rmodm1_enable    <= 1'b0;
+                    Rsqmodm1_enable    <= 1'b0;
+                    start_exp1 <= 1'b0;
+                    resetn_exp1 <= 1'b1;
+                    core_data_enable<= 1'b0;		
+					in_mul_en1 <= 1'b1;                    		
 				end
 				
 				STATE_INIT_EXP: begin
-					in_mul_en1 <= 1'b0;
+                    mod1_enable     <= 1'b0;
+                    in_exp1_enable    <= 1'b0;
+                    in_x1_enable     <= 1'b0;
+                    Rmodm1_enable    <= 1'b0;
+                    Rsqmodm1_enable    <= 1'b0;
+                    start_exp1 <= 1'b0;
+                    resetn_exp1 <= 1'b1;                    
+                    core_data_enable<= 1'b0;
+                    in_mul_en1 <= 1'b0;
 				end
 				
                 STATE_COMPUTE_EXP: begin
+                    mod1_enable     <= 1'b0;
+                    in_exp1_enable    <= 1'b0;
+                    in_x1_enable     <= 1'b0;
+                    Rmodm1_enable    <= 1'b0;
+                    Rsqmodm1_enable    <= 1'b0;                
                     start_exp1 <= 1'b1;
+                    resetn_exp1 <= 1'b1;
                     core_data_enable<= 1'b1;
+                    in_mul_en1 <= 1'b0;
                     
                 end 
                 STATE_COMPUTE_MONT: begin
-                    start_exp1 <= 1'b1;     
-                    core_data_enable<= 1'b1;                           
+                    mod1_enable     <= 1'b0;
+                    in_exp1_enable    <= 1'b0;
+                    in_x1_enable     <= 1'b0;
+                    Rmodm1_enable    <= 1'b0;
+                    Rsqmodm1_enable    <= 1'b0;               
+                    start_exp1 <= 1'b1;
+                    resetn_exp1 <= 1'b1;     
+                    core_data_enable<= 1'b1;
+                    in_mul_en1 <= 1'b0;                           
                 end
                 STATE_ASSERT_DONE: begin
+                    mod1_enable     <= 1'b0;
+                    in_exp1_enable    <= 1'b0;
+                    in_x1_enable     <= 1'b0;
+                    Rmodm1_enable    <= 1'b0;
+                    Rsqmodm1_enable    <= 1'b0;         
+                    start_exp1 <= 1'b0; 
                     resetn_exp1 <= 1'b1;
 					core_data_enable<= 1'b0;
+					in_mul_en1 <= 1'b0;
                 end
                 
                 STATE_RESET: begin
+                    mod1_enable     <= 1'b0;
+                    in_exp1_enable    <= 1'b0;
+                    in_x1_enable     <= 1'b0;
+                    Rmodm1_enable    <= 1'b0;
+                    Rsqmodm1_enable    <= 1'b0;
                     start_exp1 <= 1'b0;
                     resetn_exp1 <= 1'b0;
 					core_data_enable<= 1'b0;
+					in_mul_en1 <= 1'b0;
                  end
                 default: begin
-					core_data_enable<= 1'b0;
-					mod1_enable 	<= 1'b0;
-			        in_exp1_enable	<= 1'b0;
-					in_x1_enable 	<= 1'b0;
-					Rmodm1_enable	<= 1'b0;
-					Rsqmodm1_enable	<= 1'b0;
+                    mod1_enable     <= 1'b0;
+                    in_exp1_enable    <= 1'b0;
+                    in_x1_enable     <= 1'b0;
+                    Rmodm1_enable    <= 1'b0;
+                    Rsqmodm1_enable    <= 1'b0;
+                    start_exp1 <= 1'b0;
+                    resetn_exp1 <= 1'b0;
+                    core_data_enable<= 1'b0;
+                    in_mul_en1 <= 1'b0;
                 end
                 
             endcase
