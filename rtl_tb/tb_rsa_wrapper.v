@@ -219,48 +219,48 @@ task send_data_to_hw;
         result_ok = (multiply_expected==output_data[511:0]);
         $display("result OK?       =%x", result_ok);   
                   
-//$display("Test exponentiation ");
+/*$display("Test exponentiation ");
                 
                 
-//                $display("Sending read command for M %h" ,in_m);
-//                send_cmd_to_hw(CMD_READ_MOD);
-//                send_data_to_hw(in_m);
-//                waitdone();
+                $display("Sending read command for M %h" ,in_m);
+                send_cmd_to_hw(CMD_READ_MOD);
+                send_data_to_hw(in_m);
+                waitdone();
                         
-//                $display("Sending read command for exp %h" ,in_e);
-//                send_cmd_to_hw(CMD_READ_EXP);
-//                send_data_to_hw(in_e);
-//                waitdone();
+                $display("Sending read command for exp %h" ,in_e);
+                send_cmd_to_hw(CMD_READ_EXP);
+                send_data_to_hw(in_e);
+                waitdone();
              
-//                $display("Sending read command for Rsqmod %h" ,in_Rsquaredmodm);
-//                send_cmd_to_hw(CMD_READ_RSQ);
-//                send_data_to_hw(in_Rsquaredmodm);
-//                waitdone();
+                $display("Sending read command for Rsqmod %h" ,in_Rsquaredmodm);
+                send_cmd_to_hw(CMD_READ_RSQ);
+                send_data_to_hw(in_Rsquaredmodm);
+                waitdone();
         
-//                //// --- Perform the compute operation
+                //// --- Perform the compute operation
         
-//                $display("Sending compute command");
-//                send_cmd_to_hw(CMD_COMPUTE_EXP);
-//                waitdone();
+                $display("Sending compute command");
+                send_cmd_to_hw(CMD_COMPUTE_EXP);
+                waitdone();
         
         
-//                //// --- Send write command and transfer output data from FPGA
+                //// --- Send write command and transfer output data from FPGA
                 
-//                $display("Sending write command");
-//                send_cmd_to_hw(CMD_WRITE);
-//                read_data_from_hw(output_data_exp);
-//                waitdone();
+                $display("Sending write command");
+                send_cmd_to_hw(CMD_WRITE);
+                read_data_from_hw(output_data_exp);
+                waitdone();
         
                 
-//                //// --- Print the array contents
-//                $display("Output is      %h", output_data_exp[511:0]);        
-//                $display("result expected  =%x", expected);
-//                $display("error            =%x", expected-output_data_exp[511:0]);
+                //// --- Print the array contents
+                $display("Output is      %h", output_data_exp[511:0]);        
+                $display("result expected  =%x", expected);
+                $display("error            =%x", expected-output_data_exp[511:0]);
                     
-//                result_ok = (expected==output_data_exp[511:0]);
-//                $display("result OK?       =%x", result_ok);      
+                result_ok = (expected==output_data_exp[511:0]);
+                $display("result OK?       =%x", result_ok);   */   
 
-//        ///////////////////// END EXAMPLE  /////////////////////  
+        ///////////////////// END EXAMPLE  /////////////////////  
         
         $finish;
     end

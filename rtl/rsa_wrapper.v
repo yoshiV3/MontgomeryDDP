@@ -193,15 +193,27 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
 
 	
 	
-//	 reg  core_data_enable;
-//     reg  [TX_SIZE-1:0] core_data;
-//     always @(posedge clk)
-//     begin
-//         if(~resetn)         core_data <= 1024'hdeadbeaf;
-//         else if (done_exp1)  begin
-//						core_data[511:0]    <=result_exp1;
-//		 end
-//     end
+/*	 reg  core_data_enable;
+     reg  [TX_SIZE-1:0] core_data;
+     always @(posedge clk)
+     begin
+         if(~resetn)         core_data <= 1024'hdeadbeaf;
+         else if (done_exp1)  begin
+						core_data[511:0]    <=result_exp1;
+		 end
+     end*/
+     
+     reg debugTrigger;
+     always  @(posedge clk)
+     begin
+     if (~resetn) begin
+        debugTrigger <= 1'b0;
+     end
+     else if (in_x1_enable)
+     begin
+        debugTrigger <= 1'b1;
+     end
+     end
      
 	  //THIS IS THE START OF THE CODE THAT BREAKS SOME OF THE CODE DOWN FOR DEBUGGING by replacing done_exp1
       //with a counter that adds certain  segments of the code
@@ -211,11 +223,16 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
      if (~resetn) begin
         debugCounter <= 9'b0;
      end
-     else
+     else if (debugTrigger)
      begin
         debugCounter = debugCounter + 1;
      end
-     end     
+     end
+     
+     
+     
+     
+          
      
      // 4c85c326 (24) 76ddf19e (23) 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 xxxxxxxx deadbeaf     // received: 62E9342 947C05C2 2ACFC468 8F701B22 70FBD3CA D568E520 6B6673F0 CAB71422 DD15E4F3 3F8DA4C3 BC0E6476  7E5A51A F04A9014 23D43CFA 7FAFD51F DB5821FE
      reg  core_data_enable;
@@ -245,17 +262,39 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
          core_data[319:288]    <=result_exp1[31:0];
          else if (debugCounter == 9'd10)  
          core_data[351:320]    <=result_exp1[31:0];
-         else if (debugCounter == 9'd20)  
+         else if (debugCounter == 9'd11)  
          core_data[383:352]    <=result_exp1[31:0];
-         else if (debugCounter == 9'd21)  
+         else if (debugCounter == 9'd12)  
          core_data[415:384]    <=result_exp1[31:0];
-         else if (debugCounter == 9'd22)  
+         else if (debugCounter == 9'd13)  
          core_data[447:416]    <=result_exp1[31:0];
-         else if (debugCounter == 9'd23)  
+         else if (debugCounter == 9'd14)  
          core_data[479:448]    <=result_exp1[31:0];
-         else if (debugCounter == 9'd24)  
-         core_data[511:480]    <=result_exp1[31:0];                                        
-     end     
+         else if (debugCounter == 9'd15)  
+         core_data[511:480]    <=result_exp1[31:0];
+         else if (debugCounter == 9'd16)  
+         core_data[543:512]    <=result_exp1[31:0];
+         else if (debugCounter == 9'd17)  
+         core_data[575:544]    <=result_exp1[31:0];
+         else if (debugCounter == 9'd18)  
+         core_data[607:576]    <=result_exp1[31:0];
+         else if (debugCounter == 9'd19)  
+         core_data[639:608]    <=result_exp1[31:0];
+         else if (debugCounter == 9'd20)  
+         core_data[671:640]    <=result_exp1[31:0];
+         else if (debugCounter == 9'd21)  
+         core_data[703:672]    <=result_exp1[31:0];
+         else if (debugCounter == 9'd22)  
+         core_data[735:704]    <=result_exp1[31:0];
+         else if (debugCounter == 9'd18)  
+         core_data[767:736]    <=result_exp1[31:0];
+         else if (debugCounter == 9'd19)  
+         core_data[799:768]    <=result_exp1[31:0];
+         else if (debugCounter == 9'd20)  
+         core_data[831:800]    <=result_exp1[31:0];
+         else if (debugCounter == 9'd21)  
+         core_data[863:832]    <=result_exp1[31:0];                                         
+    end     
      // FOR THE VERSION THAT TAKES THE FIRST 16 VALUES AFTER EXP
      
      //4c85c32676ddf19e000000000000000000000000000000000000000000000000

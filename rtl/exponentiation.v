@@ -60,7 +60,9 @@ module exponentiation(
             startMont <= 1'b0;
     end
     
-    assign resetnMont = resetn && (~start || startMont); // reset if resetn is 0 or if start and not startMont yet
+    assign resetnMont = resetn && (start); // reset if resetn is 0 or if start and not startMont yet
+    
+    //assign resetnMont = resetn && (~start || startMont); 
     // resetnMont is negative
     
   
