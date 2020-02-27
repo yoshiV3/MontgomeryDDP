@@ -220,8 +220,13 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
 								 in_mul_en1       <= 1'b0;
 								 resetn_exp1      <= 1'b0;
 								 start_exp1       <= 1'b0;
-								 if (arm_to_fpga_data_valid) mod1_enable <= 1'b1; 
-								 else                        mod1_enable <= 1'b0;
+								 if (arm_to_fpga_data_valid) begin 
+															 mod1_enable <= 1'b1; 
+															 end
+								 else                        begin 
+															 mod1_enable <= 1'b0;
+															 end
+								 end
 			STATE_READ_DATA_RSQ: begin
 								 mod1_enable 	  <= 1'b0;
 								 in_exp1_enable	  <= 1'b0;
@@ -240,6 +245,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
 															 Rsqmodm1_enable <= 1'b0;
 															 in_x1_enable    <= 1'b0;
 															 end
+							     end								 
 			STATE_READ_DATA_EXP: begin
 								 mod1_enable 	  <= 1'b0;
 								 //in_exp1_enable	  <= 1'b0;
@@ -258,6 +264,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
 															 in_exp1_enable  <= 1'b0;
 															 Rmodm1_enable   <= 1'b0;
 															 end
+								 end								
 			STATE_COMPUTE_MONT:  begin 
 								 mod1_enable 	  <= 1'b0;
 								 in_exp1_enable	  <= 1'b0;
