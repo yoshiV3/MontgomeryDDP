@@ -104,14 +104,13 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     localparam STATE_READ_DATA_MOD          = 4'h5;
     localparam STATE_READ_DATA_RSQ          = 4'h6;
     localparam STATE_READ_DATA_EXP          = 4'h7;
-    localparam STATE_RESET                  = 4'h8;
-    localparam STATE_INIT_MONT		    = 4'h9;
-    localparam STATE_INIT_EXP		    = 4'ha;
+    localparam STATE_INIT_MONT		        = 4'h8;
+    localparam STATE_INIT_EXP		        = 4'h9;
 
     reg [STATE_BITS-1:0] r_state;
     reg [STATE_BITS-1:0] next_state;
     
-    localparam CMD_COMPUTE_EXP            = 3'h0;
+    localparam CMD_COMPUTE_EXP            = 3'h6;
     localparam CMD_COMPUTE_MONT           = 3'h1;
     localparam CMD_READ_MOD           	  = 3'h2;
     localparam CMD_READ_RSQ           	  = 3'h3;
@@ -144,13 +143,12 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                                 CMD_WRITE_EXP: 
                                     next_state <= STATE_WRITE_DATA;
                                 default:
-                                    next_state <= r_state;
+                                    next_state <= STATE_WAIT_FOR_CMD;
                             endcase
-                        end else
-                            next_state <= r_state;
+                        end else next_state <= r_state;
                     end
 
-                
+
                 STATE_READ_DATA_MOD:
                     next_state <= (arm_to_fpga_data_valid) ? STATE_ASSERT_DONE : r_state;  
                 
@@ -167,15 +165,11 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
                 STATE_COMPUTE_MONT:
                     next_state <= (done_exp1) ? STATE_ASSERT_DONE : r_state;
                 STATE_WRITE_DATA:
-                    next_state <= (fpga_to_arm_data_ready) ? STATE_RESET : r_state;
+                    next_state <= (fpga_to_arm_data_ready) ? STATE_ASSERT_DONE : r_state;
                 STATE_ASSERT_DONE:
                     next_state <= (fpga_to_arm_done_read) ? STATE_WAIT_FOR_CMD : r_state;
-                    
-                STATE_RESET:
-                    next_state <= STATE_ASSERT_DONE;
                 default:
                     next_state <= STATE_WAIT_FOR_CMD;
-
             endcase
         end
     end
@@ -203,94 +197,233 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
 		 end
      end
 	
+	always @(posedge(clk)) begin
+		case (r_state)
+			STATE_WAIT_FOR_CMD:  begin 
+								 mod1_enable 	  <= 1'b0;
+								 in_exp1_enable	  <= 1'b0;
+								 in_x1_enable 	  <= 1'b0;
+								 Rmodm1_enable	  <= 1'b0;
+								 Rsqmodm1_enable  <= 1'b0;
+								 core_data_enable <= 1'b0;
+								 in_mul_en1       <= 1'b0;
+								 resetn_exp1      <= 1'b0;
+								 start_exp1       <= 1'b0;
+								 end
+			STATE_READ_DATA_MOD: begin
+								 //mod1_enable 	  <= 1'b0;
+								 in_exp1_enable	  <= 1'b0;
+								 in_x1_enable 	  <= 1'b0;
+								 Rmodm1_enable	  <= 1'b0;
+								 Rsqmodm1_enable  <= 1'b0;
+								 core_data_enable <= 1'b0;
+								 in_mul_en1       <= 1'b0;
+								 resetn_exp1      <= 1'b0;
+								 start_exp1       <= 1'b0;
+								 if (arm_to_fpga_data_valid) mod1_enable <= 1'b1; 
+								 else                        mod1_enable <= 1'b0;
+			STATE_READ_DATA_RSQ: begin
+								 mod1_enable 	  <= 1'b0;
+								 in_exp1_enable	  <= 1'b0;
+								 //in_x1_enable 	  <= 1'b0;
+								 Rmodm1_enable	  <= 1'b0;
+								 //Rsqmodm1_enable  <= 1'b0;
+								 core_data_enable <= 1'b0;
+								 in_mul_en1       <= 1'b0;
+								 resetn_exp1      <= 1'b0;
+								 start_exp1       <= 1'b0;
+								 if (arm_to_fpga_data_valid) begin
+															 Rsqmodm1_enable <= 1'b1; 
+															 in_x1_enable    <= 1'b1;
+															 end
+								 else                        begin 
+															 Rsqmodm1_enable <= 1'b0;
+															 in_x1_enable    <= 1'b0;
+															 end
+			STATE_READ_DATA_EXP: begin
+								 mod1_enable 	  <= 1'b0;
+								 //in_exp1_enable	  <= 1'b0;
+								 in_x1_enable 	  <= 1'b0;
+								 //Rmodm1_enable	  <= 1'b0;
+								 Rsqmodm1_enable  <= 1'b0;
+								 core_data_enable <= 1'b0;
+								 in_mul_en1       <= 1'b0;
+								 resetn_exp1      <= 1'b0;
+								 start_exp1       <= 1'b0;
+								 if (arm_to_fpga_data_valid) begin
+															 in_exp1_enable  <= 1'b1; 
+															 Rmodm1_enable   <= 1'b1;
+															 end
+							     else                        begin 
+															 in_exp1_enable  <= 1'b0;
+															 Rmodm1_enable   <= 1'b0;
+															 end
+			STATE_COMPUTE_MONT:  begin 
+								 mod1_enable 	  <= 1'b0;
+								 in_exp1_enable	  <= 1'b0;
+								 in_x1_enable 	  <= 1'b0;
+								 Rmodm1_enable	  <= 1'b0;
+								 Rsqmodm1_enable  <= 1'b0;
+								 core_data_enable <= 1'b1;
+								 in_mul_en1       <= 1'b1;
+								 resetn_exp1      <= 1'b1;
+								 start_exp1       <= 1'b1;
+								 end
+			STATE_INIT_MONT:     begin 
+								 mod1_enable 	  <= 1'b0;
+								 in_exp1_enable	  <= 1'b0;
+								 in_x1_enable 	  <= 1'b0;
+								 Rmodm1_enable	  <= 1'b0;
+								 Rsqmodm1_enable  <= 1'b0;
+								 core_data_enable <= 1'b0;
+								 in_mul_en1       <= 1'b1;
+								 resetn_exp1      <= 1'b1;
+								 start_exp1       <= 1'b0;
+								 end
+			STATE_COMPUTE_EXP:   begin 
+								 mod1_enable 	  <= 1'b0;
+								 in_exp1_enable	  <= 1'b0;
+								 in_x1_enable 	  <= 1'b0;
+								 Rmodm1_enable	  <= 1'b0;
+								 Rsqmodm1_enable  <= 1'b0;
+								 core_data_enable <= 1'b1;
+								 in_mul_en1       <= 1'b0;
+								 resetn_exp1      <= 1'b1;
+								 start_exp1       <= 1'b1;
+								 end
+			STATE_INIT_EXP:      begin 
+								 mod1_enable 	  <= 1'b0;
+								 in_exp1_enable	  <= 1'b0;
+								 in_x1_enable 	  <= 1'b0;
+								 Rmodm1_enable	  <= 1'b0;
+								 Rsqmodm1_enable  <= 1'b0;
+								 core_data_enable <= 1'b0;
+								 in_mul_en1       <= 1'b0;
+								 resetn_exp1      <= 1'b1;
+								 start_exp1       <= 1'b0;
+								 end
+			STATE_WRITE_DATA:    begin 
+								 mod1_enable 	  <= 1'b0;
+								 in_exp1_enable	  <= 1'b0;
+								 in_x1_enable 	  <= 1'b0;
+								 Rmodm1_enable	  <= 1'b0;
+								 Rsqmodm1_enable  <= 1'b0;
+								 core_data_enable <= 1'b0;
+								 in_mul_en1       <= 1'b0;
+								 resetn_exp1      <= 1'b0;
+								 start_exp1       <= 1'b0;
+								 end
+			STATE_ASSERT_DONE:   begin 
+								 mod1_enable 	  <= 1'b0;
+								 in_exp1_enable	  <= 1'b0;
+								 in_x1_enable 	  <= 1'b0;
+								 Rmodm1_enable	  <= 1'b0;
+								 Rsqmodm1_enable  <= 1'b0;
+								 core_data_enable <= 1'b0;
+								 in_mul_en1       <= 1'b0;
+								 resetn_exp1      <= 1'b0;
+								 start_exp1       <= 1'b0;
+								 end
+			default:             begin 
+								 mod1_enable 	  <= 1'b0;
+								 in_exp1_enable	  <= 1'b0;
+								 in_x1_enable 	  <= 1'b0;
+								 Rmodm1_enable	  <= 1'b0;
+								 Rsqmodm1_enable  <= 1'b0;
+								 core_data_enable <= 1'b0;
+								 in_mul_en1       <= 1'b0;
+								 resetn_exp1      <= 1'b0;
+								 start_exp1       <= 1'b0;
+								 end
+			endcase
+	end	
 	
-	
-    always @(posedge(clk)) begin
-        if (resetn==1'b0) begin
-            resetn_exp1  <= 1'b0;
-            start_exp1   <= 1'b0;
+    // always @(posedge(clk)) begin
+        // if (resetn==1'b0) begin
+            // resetn_exp1  <= 1'b0;
+            // start_exp1   <= 1'b0;
             
-        end
-        else begin
-            case (r_state)
+        // end
+        // else begin
+            // case (r_state)
             
-                STATE_READ_DATA_MOD: begin
-					if (arm_to_fpga_data_valid) 	begin 
-													mod1_enable 	<= 1'b1;
-													in_exp1_enable	<= 1'b0;
-													in_x1_enable 	<= 1'b0;
-													Rmodm1_enable	<= 1'b0;
-													Rsqmodm1_enable	<= 1'b0;
-													core_data_enable<= 1'b0;
-													end
+                // STATE_READ_DATA_MOD: begin
+					// if (arm_to_fpga_data_valid) 	begin 
+													// mod1_enable 	<= 1'b1;
+													// in_exp1_enable	<= 1'b0;
+													// in_x1_enable 	<= 1'b0;
+													// Rmodm1_enable	<= 1'b0;
+													// Rsqmodm1_enable	<= 1'b0;
+													// core_data_enable<= 1'b0;
+													// end
                     
-                end	
+                // end	
                 
                 
-                STATE_READ_DATA_RSQ: begin
-                    if (arm_to_fpga_data_valid)      begin
+                // STATE_READ_DATA_RSQ: begin
+                    // if (arm_to_fpga_data_valid)      begin
                                                     							
-													mod1_enable 	<= 1'b0;
-													in_exp1_enable	<= 1'b0;
-													in_x1_enable 	<= 1'b1;
-													Rmodm1_enable	<= 1'b0;
-													Rsqmodm1_enable	<= 1'b1;
-													core_data_enable<= 1'b0;
-                                                     end
+													// mod1_enable 	<= 1'b0;
+													// in_exp1_enable	<= 1'b0;
+													// in_x1_enable 	<= 1'b1;
+													// Rmodm1_enable	<= 1'b0;
+													// Rsqmodm1_enable	<= 1'b1;
+													// core_data_enable<= 1'b0;
+                                                     // end
                     
-                end
+                // end
                 
-                STATE_READ_DATA_EXP: begin
-                    if (arm_to_fpga_data_valid)     begin 
-                                                    mod1_enable  	<= 1'b0;
-													in_exp1_enable	<= 1'b1;
-													in_x1_enable 	<= 1'b0;
-													Rmodm1_enable	<= 1'b1;
-													Rsqmodm1_enable	<= 1'b0;
-													core_data_enable<= 1'b0;
-                                                    end
+                // STATE_READ_DATA_EXP: begin
+                    // if (arm_to_fpga_data_valid)     begin 
+                                                    // mod1_enable  	<= 1'b0;
+													// in_exp1_enable	<= 1'b1;
+													// in_x1_enable 	<= 1'b0;
+													// Rmodm1_enable	<= 1'b1;
+													// Rsqmodm1_enable	<= 1'b0;
+													// core_data_enable<= 1'b0;
+                                                    // end
                     
-                end
+                // end
               
-				STATE_INIT_MONT: begin
-					in_mul_en1 <= 1'b1;
-				end
+				// STATE_INIT_MONT: begin
+					// in_mul_en1 <= 1'b1;
+				// end
 				
-				STATE_INIT_EXP: begin
-					in_mul_en1 <= 1'b0;
-				end
+				// STATE_INIT_EXP: begin
+					// in_mul_en1 <= 1'b0;
+				// end
 				
-                STATE_COMPUTE_EXP: begin
-                    start_exp1 <= 1'b1;
-                    core_data_enable<= 1'b1;
+                // STATE_COMPUTE_EXP: begin
+                    // start_exp1 <= 1'b1;
+                    // core_data_enable<= 1'b1;
                     
-                end 
-                STATE_COMPUTE_MONT: begin
-                    start_exp1 <= 1'b1;     
-                    core_data_enable<= 1'b1;                           
-                end
-                STATE_ASSERT_DONE: begin
-                    resetn_exp1 <= 1'b1;
-					core_data_enable<= 1'b0;
-                end
+                // end 
+                // STATE_COMPUTE_MONT: begin
+                    // start_exp1 <= 1'b1;     
+                    // core_data_enable<= 1'b1;                           
+                // end
+                // STATE_ASSERT_DONE: begin
+                    // resetn_exp1 <= 1'b1;
+					// core_data_enable<= 1'b0;
+                // end
                 
-                STATE_RESET: begin
-                    start_exp1 <= 1'b0;
-                    resetn_exp1 <= 1'b0;
-					core_data_enable<= 1'b0;
-                 end
-                default: begin
-					core_data_enable<= 1'b0;
-					mod1_enable 	<= 1'b0;
-			        in_exp1_enable	<= 1'b0;
-					in_x1_enable 	<= 1'b0;
-					Rmodm1_enable	<= 1'b0;
-					Rsqmodm1_enable	<= 1'b0;
-                end
+                // STATE_RESET: begin
+                    // start_exp1 <= 1'b0;
+                    // resetn_exp1 <= 1'b0;
+					// core_data_enable<= 1'b0;
+                 // end
+                // default: begin
+					// core_data_enable<= 1'b0;
+					// mod1_enable 	<= 1'b0;
+			        // in_exp1_enable	<= 1'b0;
+					// in_x1_enable 	<= 1'b0;
+					// Rmodm1_enable	<= 1'b0;
+					// Rsqmodm1_enable	<= 1'b0;
+                // end
                 
-            endcase
-        end
-    end
+            // endcase
+        // end
+    // end
     
     assign fpga_to_arm_data = core_data;
 
@@ -325,6 +458,6 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
     // The four LEDs on the board can be used as debug signals.
     // Here they are used to check the state transition.
 
-    assign leds             = {4'd4};
+    assign leds             = r_state;
 
 endmodule
