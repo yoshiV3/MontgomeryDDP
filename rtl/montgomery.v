@@ -35,7 +35,7 @@ module montgomery(
     
     reg C_doubleshift;
     
-    wire [512:0] negativeM;
+    wire [511:0] negativeM;
     // Student tasks:
      // 1. Instantiate an Adder
      mpadder dut (
@@ -60,7 +60,7 @@ module montgomery(
          .trueResult   (resultAdd),
          //.enableC  (enableC),
          .showFluffyPonies (showFluffyPonies),
-         .carry    (carryAdd ));
+         .subtract_finished    (carryAdd ));
     // 2. Use the Adder to implement the Montgomery multiplier in hardware.
     // 3. Use tb_montgomery.v to simulate your design.
     //registers for A,M and B
@@ -123,8 +123,8 @@ module montgomery(
 
  
  
-    assign negativeM =  {~regM_Q, 1'b1};   //WE BROKE AN ADD A PLUS ONE (we will add in the adder)
-    //Also shift left the subtraction, which is why we add a one after shifting
+    assign negativeM =  ~regM_Q;   //WE BROKE AN ADD A PLUS ONE (we will add in the adder)
+    // We no longer shift, so no more: //Also shift left the subtraction, which is why we add a one after shifting
     
     
     
