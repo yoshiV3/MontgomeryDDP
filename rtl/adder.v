@@ -6,6 +6,8 @@ module mpadder(
     input  wire         subtract,
     input  wire [511:0] B0,
     input  wire [512:0] B1,
+    input  wire [513:0] B2,
+    input  wire [514:0] B3,
     input  wire [511:0] M0,
     input  wire [512:0] M1,
     input  wire [513:0] M2,
@@ -71,9 +73,9 @@ module mpadder(
      //assign cOne = C2b[1]^C2c[1]^(C2b[0]&C2c[0]);
 
      
-     wire [102:0] operandAShift;
-     wire [102:0] operandBShift;
-     wire [103:0] tempRes;
+     wire [103:0] operandAShift;
+     wire [103:0] operandBShift;
+     wire [104:0] tempRes;
      
 
 
@@ -81,11 +83,11 @@ module mpadder(
 
      //wire [102:0] result_d;
 
-     reg  [102:0] result_regOne;
-     reg  [102:0] result_regTwo;
-     reg  [102:0] result_regThree;
-     reg  [102:0] result_regFour;
-     reg  [100:0] result_regFive;
+     reg  [103:0] result_regOne;
+     reg  [103:0] result_regTwo;
+     reg  [103:0] result_regThree;
+     reg  [103:0] result_regFour;
+     reg  [103:0] result_regFive;
 
      
      wire   resultOne_en ;  
@@ -142,13 +144,13 @@ module mpadder(
      reg  carry_inNew;
      always @(posedge clk)
      begin
-         if(~resetn)          carry_inNew <= 2'd0;
-         else if(showFluffyPonies[3] == 1'd0 && showFluffyPonies != 4'd0 ) carry_inNew <= tempRes[103];
+         if(~resetn)          carry_inNew <= 1'd0;
+         else if(showFluffyPonies[3] == 1'd0 && showFluffyPonies != 4'd0 ) carry_inNew <= tempRes[104];
      end
      
      
-     wire [102:0] operandA; 
-     wire [102:0] operandB;
+     wire [103:0] operandA; 
+     wire [103:0] operandB;
 
       assign operandA = (showFluffyPonies == 4'b0) ? c_regb[105:2] : 
      (showFluffyPonies == 4'd1) ? c_regb[209:106] :
