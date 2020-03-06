@@ -189,7 +189,32 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
 
 	
 	
-	 reg  core_data_enable;
+//	 reg  core_data_enable;
+//     reg  [TX_SIZE-1:0] core_data;
+//     always @(posedge clk)
+//     begin
+//         if(~resetn)         core_data <= 1024'hdeadbeaf;
+//         else if (done_exp1)  begin
+//						core_data[511:0]    <=result_exp1;
+//		 end
+//     end
+     
+	  //THIS IS THE START OF THE CODE THAT BREAKS SOME OF THE CODE DOWN FOR DEBUGGING by replacing done_exp1
+      //with a counter that adds certain  segments of the code
+     reg [8:0] debugCounter;
+     always @(posedge (clk))
+     begin
+     if (~resetn) begin
+        debugCounter <= 9'b0;
+     end
+     else
+     begin
+        debugCounter = debugCounter + 1;
+     end
+     end     
+     
+     // 4c85c326 (24) 76ddf19e (23) 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 xxxxxxxx deadbeaf     // received: 62E9342 947C05C2 2ACFC468 8F701B22 70FBD3CA D568E520 6B6673F0 CAB71422 DD15E4F3 3F8DA4C3 BC0E6476  7E5A51A F04A9014 23D43CFA 7FAFD51F DB5821FE
+     reg  core_data_enable;
      reg  [TX_SIZE-1:0] core_data;
      always @(posedge clk)
      begin
@@ -323,6 +348,7 @@ module rsa_wrapper #(parameter TX_SIZE = 1024)(
 			endcase
 	end	
 	
+
     
     assign fpga_to_arm_data = core_data;
 
