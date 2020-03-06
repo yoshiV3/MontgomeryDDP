@@ -15,7 +15,7 @@ module montgomery(
     reg     startAdd;
     reg     subtract;
     reg [3:0] showFluffyPonies;
-    wire[513:0] resultAdd;
+    wire[511:0] resultAdd;
     wire c_zero;
     wire c_one;
     wire c_two;
@@ -490,7 +490,7 @@ module montgomery(
           
     end
          
-    assign result = resultAdd[511:0]; //trueResult
+    assign result = resultAdd; //trueResult
     
     assign done = (state ==  4'd8);
 endmodule

@@ -83,6 +83,24 @@ module tb_montgomery();
          $display("waiting till done");
         wait (done==1);
          $display("done");
+         
+         in_a     <= 512'hac4dc7bb86017e775bf3edb76f80426c4d898beafc672add50e1e2e2bb8a2c969ecc8fc5a23d1bd69e69b23d682b963d5995092569f4fad82e4e607b94e66799;
+         in_a     <= 512'hac4dc7bb86017e775bf3edb76f80426c4d898beafc672add50e1e2e2bb8a2c969ecc8fc5a23d1bd69e69b23d682b963d5995092569f4fad82e4e607b94e66799;
+         in_b     <= 512'hc4ab58ffd4d458dcd751e3453318a2490a75777890e826972f7650391eb8c239cd2d80add6e3376730d384a8967964ffbcc66e926e6b9105b527439e130b66f2;
+         in_m     <= 512'hcab66a300d7d7434e2eceed017d13eec8c2f3ea94f28e19cd436b45dc751ab45221998dbdf54698f675b04b08dfebe6c9327c6e6e6958ab181ced1fde03f2b63;
+         expected <= 512'h9888228681d45be403730f9b89ff217b61a3522008ab60428ad951bb5c6e4696b5937108813f3a03be712506188d051c1c255b16ebad379420eed9a97f800c0;                    
+          
+          $display("start the madness");
+         start<=1;
+         #`CLK_PERIOD;
+         //#`CLK_PERIOD;
+         start<=0;
+         
+          $display("waiting till done");
+         wait (done==1);
+          $display("done");
+         
+         
         
         $display("result calculated=%x", result);
         $display("result expected  =%x", expected);
