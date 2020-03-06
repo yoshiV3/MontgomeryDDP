@@ -60,7 +60,7 @@ module exponentiation(
             startMont <= 1'b0;
     end
     
-    assign resetnMont = resetn && (~start || startMont); // reset if resetn is 0 or if start and not startMont yet
+    assign resetnMont = resetn && (start); // reset if resetn is 0 or if start and not startMont yet
     // resetnMont is negative
     
   
@@ -182,11 +182,22 @@ module exponentiation(
                 select_b <= 2'd0;
                 R2_en <= 1'b1;
             end
+            
+        else if (state ==3'd7)
+            begin
+                exponent_en <= 1'b0;
+                initial_shift <= 1'b1;
+                A_en <= 1'b0;
+                A_Rmodm <= 1'b0;
+                select_a <= 1'b1;
+                select_b <= 2'd0;            
+                R2_en <= 1'b0;
+            end    
         
         else if (state ==3'd1)
             begin
                 exponent_en <= 1'b0;
-                initial_shift <= 1'b1;
+                initial_shift <= 1'b0;
                 A_en <= 1'b1;
                 A_Rmodm <= 1'b1;
                 select_a <= 1'b1;
@@ -274,7 +285,7 @@ module exponentiation(
         start <= 1'b0;
         if (startExponentiation && ~multiplication_enable)
             begin
-            nextstate <= 3'd1;
+            nextstate <= 3'd7;
             end
         else if (startExponentiation && multiplication_enable)
             begin
@@ -285,10 +296,23 @@ module exponentiation(
             nextstate <= 3'd0;
             end
     end 
+    else if (state == 3'd7)
+    begin
+        exponent_shift <= 1'b0;
+        start <=1'b0;
+        if (~eZero)
+            begin
+            nextstate <= 3'd7;
+            end
+        else
+            begin
+            nextstate <= 3'd1;
+            end
+    end
     else if (state == 3'd1)
     begin
         exponent_shift <= 1'b0;
-        if (~(montgomeryDoneFirstTime && eZero))
+        if (~(montgomeryDoneFirstTime))
             begin
             start <= 1'b1;
             nextstate <= 3'd1;
