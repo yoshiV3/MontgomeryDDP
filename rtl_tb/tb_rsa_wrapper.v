@@ -139,7 +139,7 @@ task send_data_to_hw;
     endtask
 
 	
-    localparam CMD_COMPUTE_EXP            = 32'h0;
+    localparam CMD_COMPUTE_EXP            = 32'h6;
     localparam CMD_COMPUTE_MONT           = 32'h1;
     localparam CMD_READ_MOD           	  = 32'h2; //for both mods
     localparam CMD_READ_RSQ		          = 32'h3; // for [x rsq] or [A B]
