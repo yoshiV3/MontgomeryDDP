@@ -1,5 +1,7 @@
 `timescale 1ns / 1ps
 
+//Use video Design Analysis and Floorplanning to synthesize this block as its own structure
+
 module mpadder(
     input  wire         clk,
     input  wire         resetn,
@@ -282,7 +284,6 @@ module mpadder(
      genvar i;
      generate
      for (i=0; i<=519; i = i+1) begin : do4Adders
-     (* dont_touch = "true"*)
     add3 L1 (
         .carry(C2cPad[i]), // upper bit
         .sum(C2bPad[i]), //lower bit of this
