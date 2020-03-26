@@ -27,6 +27,7 @@ module montgomery(
     wire [512:0] B1;
     wire [513:0] B2;
     wire [514:0] B3;
+    
     wire [511:0] M0;
     wire [512:0] M1;
     wire [513:0] M2;
@@ -36,6 +37,7 @@ module montgomery(
     reg C_doubleshift;
     
     wire [511:0] negativeM;
+    
     // Student tasks:
      // 1. Instantiate an Adder
      mpadder dut (
@@ -61,14 +63,24 @@ module montgomery(
          //.enableC  (enableC),
          .showFluffyPonies (showFluffyPonies),
          .subtract_finished    (carryAdd ));
-    // 2. Use the Adder to implement the Montgomery multiplier in hardware.
-    // 3. Use tb_montgomery.v to simulate your design.
-    //registers for A,M and B
-    
-    wire M0Select;
-    wire M1Select;
-    wire M2Select;
-    wire M3Select;
+
+        wire [511:0] regM;
+       wire [3:0] regALastBits;
+       wire [3:0] regBLastBits;
+   (*dont_touch = "true"*)
+    fluffyForFlessFLUTS MCalc (
+         .M (regM),
+         .c_zero (c_zero),
+         .c_one   (c_one),
+         .c_two   (c_two),
+         .c_three (c_three),
+         .regA_shift (regALastBits),
+         .regB_Q (regBLastBits),
+         .M0 (M0),
+         .M1 (M1),
+         .M2 (M2),
+         .M3 (M3)
+    );
     
     
 
@@ -78,7 +90,7 @@ module montgomery(
     reg          regA_sh;
     wire [511:0] regA_D;
     reg[511:0]   regA_shift;
-
+    
     always @(posedge clk)
     begin
         if(~ resetn)    begin
@@ -96,7 +108,7 @@ module montgomery(
     
  
      assign regA_D = in_a; 
-    
+    assign regALastBits = regA_shift[3:0];
     
 
     wire [511:0] regB_D;
@@ -108,6 +120,7 @@ module montgomery(
     end
     
     assign regB_D = in_b; 
+    assign regBLastBits = regB_Q[3:0];
 
     wire [511:0] regM_D;
     reg  [511:0] regM_Q;
@@ -118,7 +131,7 @@ module montgomery(
     end
    
     assign regM_D = in_m; 
-    
+    assign regM = regM_Q;
     
 
  
@@ -132,35 +145,7 @@ module montgomery(
 //    assign M0Select = (c_zero ^ (regB_Q[0] & regA_shift[0]));
 //    assign M0Carry = (c_zero & regB_Q[0]& regA_shift[0]) | (regM_Q[0] & M0Select & regB_Q[0]& regA_shift[0]) | (regM_Q[0] & M0Select & c_zero);
 //    assign M1Select = M0Carry ^ c_one ^ (regA_shift[0] & regB_Q[1]) ^ (regM_Q[1] & M0Select) ^ (regA_shift[1] & regB_Q[0]);
-    wire [3:0] tempSum0;
-    wire [2:0] tempSum1;
-    wire [1:0] tempSum2;
-    wire tempSum3;
-    
-    assign tempSum0 = {c_three, c_two, c_one, c_zero} + (regB_Q[3:0] &  {regA_shift[0], regA_shift[0], regA_shift[0], regA_shift[0]});
-    assign M0Select = tempSum0[0];
-    assign tempSum1 = ((tempSum0 + (regM_Q[3:0] & {M0Select, M0Select, M0Select, M0Select}))>> 1) + (regB_Q[2:0] &  {regA_shift[1], regA_shift[1], regA_shift[1], regA_shift[1]});
-    assign M1Select = tempSum1[0];
-    assign tempSum2 = ((tempSum1 + (regM_Q[2:0] & {M1Select, M1Select, M1Select, M1Select}))>> 1) + (regB_Q[1:0] &  {regA_shift[2], regA_shift[2], regA_shift[2], regA_shift[2]});
-    assign M2Select = tempSum2[0];
-    assign tempSum3 = ((tempSum2 + (regM_Q[1:0] & {M2Select, M2Select, M2Select, M2Select}))>> 1) + (regB_Q[0] &  {regA_shift[3], regA_shift[3], regA_shift[3], regA_shift[3]});
-    assign M3Select = tempSum3;
-    
-    genvar i;
-    generate
-    for (i=0; i<=511; i = i+1) begin : multiplexWithZeroIsAnd
-//    assign B0[i] = regA_shift[0] & regB_Q[i];
-//    assign B1[i+1] = regA_shift[1] & regB_Q[i]; //We automatically shift
-    assign M0[i] = M0Select & regM_Q[i];
-    assign M1[i+1] = M1Select & regM_Q[i]; //We automatically shift
-    assign M2[i+2] = M2Select & regM_Q[i];
-    assign M3[i+3] = M3Select & regM_Q[i]; //We automatically shift
-    end
-    endgenerate
-//    assign B1[0] = 1'b0; //shifted left so we can shift right twice at the end
-    assign M1[0] = 1'b0;
-    assign M2[1:0] = 2'b0;
-    assign M3[2:0] = 3'b0;
+
     
     reg [511:0] B0_reg;
     always @(posedge clk)
