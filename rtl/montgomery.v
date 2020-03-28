@@ -16,10 +16,7 @@ module montgomery(
     reg     subtract;
     reg [3:0] showFluffyPonies;
     wire[511:0] resultAdd;
-    wire c_zero;
-    wire c_one;
-    wire c_two;
-    wire c_three;
+    wire [7:0] c_prediction;
     //reg enableC;
     wire carryAdd;
     
@@ -53,10 +50,7 @@ module montgomery(
          .M3     (M3),
          .subtraction   (negativeM),
          .c_doubleshift (C_doubleshift),
-         .cZero   (c_zero),
-         .cOne    (c_one),
-         .cTwo    (c_two),
-         .cThree  (c_three),
+         .cPrediction (c_prediction),
          .trueResult   (resultAdd),
          //.enableC  (enableC),
          .showFluffyPonies (showFluffyPonies),
@@ -71,7 +65,7 @@ module montgomery(
     wire M3Select;
     
     
-
+    
     
     
 
@@ -132,31 +126,92 @@ module montgomery(
 //    assign M0Select = (c_zero ^ (regB_Q[0] & regA_shift[0]));
 //    assign M0Carry = (c_zero & regB_Q[0]& regA_shift[0]) | (regM_Q[0] & M0Select & regB_Q[0]& regA_shift[0]) | (regM_Q[0] & M0Select & c_zero);
 //    assign M1Select = M0Carry ^ c_one ^ (regA_shift[0] & regB_Q[1]) ^ (regM_Q[1] & M0Select) ^ (regA_shift[1] & regB_Q[0]);
-    wire [3:0] tempSum0;
-    wire [2:0] tempSum1;
-    wire [1:0] tempSum2;
-    wire tempSum3;
+    wire [8:0] tempSum0;
+    wire [9:0] tempSum1;
+    wire [9:0] tempSum2;
+    wire [9:0] tempSum3;
+    wire [5:0] tempSum4;
+    wire [5:0] tempSum5;
+    wire [5:0] tempSum6;
+    wire [5:0] tempSum7;
+    wire [3:0] resultSum;
+    wire M0NextCycle;
+    wire M1NextCycle;
+    wire M2NextCycle;
+    wire M3NextCycle;
     
-    assign tempSum0 = {c_three, c_two, c_one, c_zero} + (regB_Q[3:0] &  {regA_shift[0], regA_shift[0], regA_shift[0], regA_shift[0]});
+    
+    assign tempSum0 = c_prediction + (regB_Q[7:0] &  {regA_shift[0], regA_shift[0], regA_shift[0], regA_shift[0], regA_shift[0], regA_shift[0], regA_shift[0], regA_shift[0]});
     assign M0Select = tempSum0[0];
-    assign tempSum1 = ((tempSum0 + (regM_Q[3:0] & {M0Select, M0Select, M0Select, M0Select}))>> 1) + (regB_Q[2:0] &  {regA_shift[1], regA_shift[1], regA_shift[1], regA_shift[1]});
+    assign tempSum1 = ((tempSum0 + (regM_Q[7:0] & {M0Select, M0Select, M0Select, M0Select, M0Select, M0Select, M0Select, M0Select}))>> 1) + (regB_Q[6:0] &  {regA_shift[1], regA_shift[1], regA_shift[1], regA_shift[1], regA_shift[1], regA_shift[1], regA_shift[1], regA_shift[1]});
     assign M1Select = tempSum1[0];
-    assign tempSum2 = ((tempSum1 + (regM_Q[2:0] & {M1Select, M1Select, M1Select, M1Select}))>> 1) + (regB_Q[1:0] &  {regA_shift[2], regA_shift[2], regA_shift[2], regA_shift[2]});
+    assign tempSum2 = ((tempSum1 + (regM_Q[6:0] & {M1Select, M1Select, M1Select, M1Select, M1Select, M1Select, M1Select, M1Select}))>> 1) + (regB_Q[5:0] &  {regA_shift[2], regA_shift[2], regA_shift[2], regA_shift[2], regA_shift[2], regA_shift[2], regA_shift[2], regA_shift[2]});
     assign M2Select = tempSum2[0];
-    assign tempSum3 = ((tempSum2 + (regM_Q[1:0] & {M2Select, M2Select, M2Select, M2Select}))>> 1) + (regB_Q[0] &  {regA_shift[3], regA_shift[3], regA_shift[3], regA_shift[3]});
-    assign M3Select = tempSum3;
+    assign tempSum3 = ((tempSum2 + (regM_Q[5:0] & {M2Select, M2Select, M2Select, M2Select, M2Select, M2Select, M2Select, M2Select}))>> 1) + (regB_Q[4:0] &  {regA_shift[3], regA_shift[3], regA_shift[3], regA_shift[3], regA_shift[3], regA_shift[3], regA_shift[3], regA_shift[3]});
+    assign M3Select = tempSum3[0];
+    assign resultSum = ((tempSum3 + (regM_Q[4:0] & {M3Select, M3Select, M3Select, M3Select, M3Select, M3Select, M3Select, M3Select}))>> 1);
     
-    genvar i;
-    generate
-    for (i=0; i<=511; i = i+1) begin : multiplexWithZeroIsAnd
-//    assign B0[i] = regA_shift[0] & regB_Q[i];
-//    assign B1[i+1] = regA_shift[1] & regB_Q[i]; //We automatically shift
-    assign M0[i] = M0Select & regM_Q[i];
-    assign M1[i+1] = M1Select & regM_Q[i]; //We automatically shift
-    assign M2[i+2] = M2Select & regM_Q[i];
-    assign M3[i+3] = M3Select & regM_Q[i]; //We automatically shift
+    assign tempSum4 = resultSum + (regB_Q[3:0] &  {regA_shift[4], regA_shift[4], regA_shift[4], regA_shift[4]});
+    assign M0NextCycle = tempSum4[0];
+    assign tempSum5 = ((tempSum4 + (regM_Q[3:0] & {M0NextCycle, M0NextCycle, M0NextCycle, M0NextCycle}))>> 1) + (regB_Q[2:0] &  {regA_shift[5], regA_shift[5], regA_shift[5]});
+    assign M1NextCycle = tempSum5[0];
+    assign tempSum6 = ((tempSum5 + (regM_Q[2:0] & {M1NextCycle, M1NextCycle, M1NextCycle, M1NextCycle}))>> 1) + (regB_Q[1:0] &  {regA_shift[6], regA_shift[6]});
+    assign M2NextCycle = tempSum6[0];
+    assign tempSum7 = ((tempSum6 + (regM_Q[1:0] & {M2NextCycle, M2NextCycle, M2NextCycle, M2NextCycle}))>> 1) + (regB_Q[0] &  {regA_shift[7]});
+    assign M3NextCycle = tempSum7[0];
+
+    reg [511:0] M0_reg;
+    always @(posedge clk)
+    begin
+        if (~resetn || (~M0Select & ~regA_sh) || (~M0NextCycle & regA_sh)) 
+            M0_reg <= 512'b0;
+        else 
+            M0_reg<= regM_Q;
     end
-    endgenerate
+    
+    reg [511:0] M1_reg;
+    always @(posedge clk)
+    begin
+        if (~resetn || (~M1Select & ~regA_sh) || (~M1NextCycle & regA_sh))
+            M1_reg <= 512'b0;
+        else 
+            M1_reg<= regM_Q;
+    end
+    reg [511:0] M2_reg;
+    always @(posedge clk)
+    begin
+        if (~resetn || (~M2Select & ~regA_sh) || (~M2NextCycle & regA_sh))
+            M2_reg <= 512'b0;
+        else 
+            M2_reg<= regM_Q;
+    end
+    
+    reg [511:0] M3_reg;
+    always @(posedge clk)
+    begin
+        if (~resetn || (~M3Select & ~regA_sh) || (~M3NextCycle & regA_sh))
+            M3_reg <= 512'b0;
+        else 
+            M3_reg<= regM_Q;
+    end     
+    
+//    genvar i;
+//    generate
+//    for (i=0; i<=511; i = i+1) begin : multiplexWithZeroIsAnd
+////    assign B0[i] = regA_shift[0] & regB_Q[i];
+////    assign B1[i+1] = regA_shift[1] & regB_Q[i]; //We automatically shift
+//    assign M0[i] = M0Select & regM_Q[i];
+//    assign M1[i+1] = M1Select & regM_Q[i]; //We automatically shift
+//    assign M2[i+2] = M2Select & regM_Q[i];
+//    assign M3[i+3] = M3Select & regM_Q[i]; //We automatically shift
+//    end
+//    endgenerate
+
+    assign M0[511:0] = M0_reg;
+    assign M1[512:1] = M1_reg;
+    assign M2[513:2] = M2_reg;
+    assign M3[514:3] = M3_reg;
+    
 //    assign B1[0] = 1'b0; //shifted left so we can shift right twice at the end
     assign M1[0] = 1'b0;
     assign M2[1:0] = 2'b0;
@@ -382,6 +437,8 @@ module montgomery(
             else
                 nextstate <= 4'd0;
         end
+        
+        
         else if(state == 4'd1) begin
            extraStateNext <= 4'd8;
            nextstate <= 4'd3;

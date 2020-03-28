@@ -21,10 +21,7 @@ module mpadder(
     output wire [511:0] trueResult,
     
     output wire         subtract_finished, // better name would be subtract_finished
-    output wire         cZero,
-    output wire         cOne,
-    output wire         cTwo,
-    output wire         cThree
+    output wire   [7:0]      cPrediction
     //output wire         done
      );
      
@@ -66,9 +63,9 @@ module mpadder(
      //assign c_enable = enableC;
 
      //assign cZero = C2b[0]^C2c[0];This will always be 0
-     wire [6:0] sumCarryAndBit;
-     assign sumCarryAndBit = c_regb[8:2] + c_regc[8:2];
-     assign {cThree,cTwo,cOne, cZero} = sumCarryAndBit[6:3]; //be don't need the 0 bit,
+     wire [10:0] sumCarryAndBit;
+     assign sumCarryAndBit = c_regb[12:2] + c_regc[12:2];
+     assign cPrediction = sumCarryAndBit[10:3]; //be don't need the 0 bit,
      // since it will be 0, and the first bit is not our concern
     // This can be optimized     
      
