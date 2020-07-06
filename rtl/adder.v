@@ -301,7 +301,7 @@ module mpadder(
     add3 R1 (
             .carry(B2Pad[i]), // upper bit
             .sum(M2Pad[i]), //lower bit of this
-            .a(M3Pad[i]),    // input
+            .a(B3Pad[i]),    // input
             .result({RC1[i],RB1[i]}) // C is the output wire in the outer module
         );
         
@@ -339,7 +339,7 @@ module mpadder(
     add3 L5 (
             .carry(LC4Shift[i]), // upper bit
             .sum(LB4[i]), //lower bit of this
-            .a(B3Pad[i]),    // input
+            .a(M3Pad[i]),    // input
             .result({C1cOut[i],C1bOut[i]}) // C is the output wire in the outer module
      );
     
