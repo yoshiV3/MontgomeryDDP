@@ -221,15 +221,15 @@ module montgomery(
         end
     end  
     
-    reg [7:0] counter_up;
+    reg [9:0] counter_up;
     reg countEn;
     reg reset;
     always @(posedge clk)
     begin
     if(~resetn || reset)
-     counter_up <= 8'd0;
+     counter_up <= 10'd0;
     else if(countEn)
-     counter_up <= counter_up + 8'd1;
+     counter_up <= counter_up + 10'd1;
     end
     
     //reg [511:0] debug;
@@ -398,7 +398,7 @@ module montgomery(
 
         
         else if (state == 4'd3) begin
-             if (counter_up == 8'd127) //switch 9
+             if (counter_up == 10'd127) //switch 9
              begin
                 nextstate <= 4'd7; // Go to the end
                 extraStateNext <= 4'd0;
@@ -453,7 +453,7 @@ module montgomery(
                else if( extraState == 4'd4) begin extraStateNext<= 4'd5; nextstate <= 4'd7; end
                else if( extraState == 4'd5)
                    begin 
-                       nextstate  <= 4'd5;  
+                       nextstate  <= 4'd5;  //CHANGE TO FIVE
                        extraStateNext <= 4'd0;
                   end
                else
@@ -465,7 +465,7 @@ module montgomery(
             
          else if (state == 4'd5)   begin
 
-                if (carryAdd == 1'b1) begin nextstate <= 4'd8; extraStateNext<= 4'd8; end 
+                if (carryAdd == 1'b1) begin nextstate <= 4'd8; extraStateNext<= 4'd8; end //carryAdd is our subtract finished What does this line do????
                else if(extraState == 4'd0)  begin extraStateNext<= 4'd1; nextstate <= 4'd5; end
                else if( extraState == 4'd1) begin extraStateNext<= 4'd2; nextstate <= 4'd5; end
                else if( extraState == 4'd2) begin extraStateNext<= 4'd3; nextstate <= 4'd5; end
@@ -473,7 +473,7 @@ module montgomery(
                else if( extraState == 4'd4) begin extraStateNext<= 4'd5; nextstate <= 4'd5; end
                else if( extraState == 4'd5)
                begin 
-                   nextstate  <= 4'd5;
+                   nextstate  <= 4'd5; //TODO set back to 5
                    extraStateNext <= 4'd0;
                end
                else
