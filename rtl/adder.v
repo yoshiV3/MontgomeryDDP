@@ -44,11 +44,18 @@ module mpadder(
      always @(posedge clk)
      begin
          if(~resetn)         c_regb <= 518'd0;
+         //else   c_regb <= C1bOut[519:2];
          else if (c_doubleshift)   c_regb <= C1bOut[519:2]; //We only shift once now
          //else if (c_enable)  c_regb <= C1bOut[513:0];
-         else if (subtract && showFluffyPonies == 4'b0)  c_regb <= {6'b0, result[511:0]};
+         //else if (subtract && showFluffyPonies == 4'b0)  c_regb <= {6'b0, result[511:0]};
      end
      
+     reg [511:0] resultReg;
+     always @(posedge clk)
+     begin
+        if(~resetn)         resultReg <= 512'd0;
+        else if (subtract && showFluffyPonies == 4'b0) resultReg <= result[511:0];
+     end     
   
      
 
@@ -61,6 +68,19 @@ module mpadder(
          //else if (c_enable)  c_regc <= C1cOut;
      end
      
+//     reg [6:0] c_regcDuplicate;
+//     always @(posedge clk)
+//     begin 
+//        if(~resetn)       c_regcDuplicate <= 7'b0;
+//        else if (c_doubleshift) c_regcDuplicate <= C1cOut[9:3];
+//     end
+     
+//      reg [6:0] c_regbDuplicate;
+//     always @(posedge clk)
+//     begin 
+//        if(~resetn)       c_regbDuplicate <= 7'b0;
+//        else if (c_doubleshift) c_regbDuplicate <= C1bOut[10:4];
+//     end
      
 
      //assign c_enable = enableC;
@@ -68,6 +88,7 @@ module mpadder(
      //assign cZero = C2b[0]^C2c[0];This will always be 0
      wire [6:0] sumCarryAndBit;
      assign sumCarryAndBit = c_regb[8:2] + c_regc[8:2];
+     //assign sumCarryAndBit = c_regbDuplicate[6:0] + c_regcDuplicate[6:0];
      assign {cThree,cTwo,cOne, cZero} = sumCarryAndBit[6:3]; //be don't need the 0 bit,
      // since it will be 0, and the first bit is not our concern
     // This can be optimized     
@@ -234,8 +255,8 @@ module mpadder(
      
      wire [519:0] LC1;
      wire [519:0] LB1;
-     wire [519:0] MC1;
-     wire [519:0] MB1;
+   //  wire [519:0] MC1;
+   //  wire [519:0] MB1;
      wire [519:0] RC1;
      wire [519:0] RB1;
           
@@ -246,19 +267,22 @@ module mpadder(
      
      wire [519:0] LC3;
      wire [519:0] LB3;
-     
+     wire [519:0] RC3;
+     wire [519:0] RB3;
+          
      wire [519:0] LC4;
      wire [519:0] LB4;
      
      
      wire [519:0] LeftCarryShift = {LC1[518:0], 1'b0};
-     wire [519:0] RightCarryShift = {MC1[518:0], 1'b0};
+     //wire [519:0] RightCarryShift = {MC1[518:0], 1'b0};
      wire [519:0] RightCarryRightShift = {RC1[518:0], 1'b0};
      
      wire [519:0] LC2Shift = {LC2[518:0], 1'b0};
      wire [519:0] RC2Shift = {RC2[518:0], 1'b0};
      
      wire [519:0] LC3Shift = {LC3[518:0], 1'b0};
+     wire [519:0] RC3Shift = {RC3[518:0], 1'b0};
      
      wire [519:0] LC4Shift = {LC4[518:0], 1'b0};
      
@@ -291,16 +315,16 @@ module mpadder(
         .result({LC1[i],LB1[i]}) // C is the output wire in the outer module
     );
     
-    add3 M1 (
-        .carry(B1Pad[i]), // upper bit
-        .sum(M0Pad[i]), //lower bit of this
-        .a(M1Pad[i]),    // input
-        .result({MC1[i],MB1[i]}) // C is the output wire in the outer module
-    );
+//    add3 M1 (
+//        .carry(B1Pad[i]), // upper bit
+//        .sum(M0Pad[i]), //lower bit of this
+//        .a(M1Pad[i]),    // input
+//        .result({MC1[i],MB1[i]}) // C is the output wire in the outer module
+//    );
     
     add3 R1 (
             .carry(B2Pad[i]), // upper bit
-            .sum(M2Pad[i]), //lower bit of this
+            .sum(B1Pad[i]), //lower bit of this
             .a(B3Pad[i]),    // input
             .result({RC1[i],RB1[i]}) // C is the output wire in the outer module
         );
@@ -308,13 +332,13 @@ module mpadder(
     add3 L2 (
         .carry(LeftCarryShift[i]), // upper bit
         .sum(LB1[i]), //lower bit of this
-        .a(RightCarryShift[i]),    // input
+        .a(M1Pad[i]),    // input
         .result({LC2[i],LB2[i]}) // C is the output wire in the outer module
     );
     
     
     add3 R2 (
-            .carry(MB1[i]), // upper bit
+            .carry(M0Pad[i]), // upper bit
             .sum(RightCarryRightShift[i]), //lower bit of this
             .a(RB1[i]),    // input
             .result({RC2[i],RB2[i]}) // C is the output wire in the outer module
@@ -328,18 +352,25 @@ module mpadder(
         .a(RC2Shift[i]),    // input
         .result({LC3[i],LB3[i]}) // C is the output wire in the outer module
     );
+    
+    add3 R3 (
+            .carry(RB2[i]), // upper bit
+            .sum(M2Pad[i]), //lower bit of this
+            .a(M3Pad[i]),    // input
+            .result({RC3[i],RB3[i]}) // C is the output wire in the outer module
+        );
             
     add3 L4 (
         .carry(LC3Shift[i]), // upper bit
         .sum(LB3[i]), //lower bit of this
-        .a(RB2[i]),    // input
+        .a(RC3Shift[i]),    // input
         .result({LC4[i],LB4[i]}) // C is the output wire in the outer module
     );
     
     add3 L5 (
             .carry(LC4Shift[i]), // upper bit
             .sum(LB4[i]), //lower bit of this
-            .a(M3Pad[i]),    // input
+            .a(RB3[i]),    // input
             .result({C1cOut[i],C1bOut[i]}) // C is the output wire in the outer module
      );
     
@@ -373,8 +404,8 @@ module mpadder(
     assign subtract_finished = (upperBitSubtract_D == 2'b0 && overflow);
     
     
-     assign trueResult = c_regb[511:0]; //we store the to be subtracted value in c_regb, and get our result from there once done   
-
+     //assign trueResult = c_regb[511:0]; //we store the to be subtracted value in c_regb, and get our result from there once done   
+    assign trueResult = resultReg[511:0];
 
     
 endmodule
