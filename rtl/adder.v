@@ -46,6 +46,7 @@ module mpadder(
          if(~resetn)         c_regb <= 518'd0;
          //else   c_regb <= C1bOut[519:2];
          else if (c_doubleshift)   c_regb <= C1bOut[519:2]; //We only shift once now
+         //else   c_regb <= C1bOut[519:2];
          //else if (c_enable)  c_regb <= C1bOut[513:0];
          //else if (subtract && showFluffyPonies == 4'b0)  c_regb <= {6'b0, result[511:0]};
      end
@@ -65,6 +66,7 @@ module mpadder(
      begin
          if(~resetn)         c_regc <= 519'd0;
          else if (c_doubleshift)   c_regc <= C1cOut[519:1]; //one shift because the other 3 shifts are done in the adder by starting at 0
+         //else  c_regc <= C1cOut[519:1]; //THIS WILL FIX THE TIMING ISSUE, BUT REQUIRES Mselect = 0 a change in indices and Aselect = 0, which will add crit path
          //else if (c_enable)  c_regc <= C1cOut;
      end
      
@@ -171,7 +173,7 @@ module mpadder(
          else if(showFluffyPonies[3] == 1'd0 && showFluffyPonies != 4'd0 ) carry_inNew <= tempRes[104];
      end
      
-     
+
      wire [103:0] operandA; 
      wire [103:0] operandB;
 
