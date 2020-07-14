@@ -98,8 +98,10 @@ module mpadder(
      //assign cOne = C2b[1]^C2c[1]^(C2b[0]&C2c[0]);
 
      
-     wire [103:0] operandAShift;
-     wire [103:0] operandBShift;
+//     wire [103:0] operandAShift;
+//     wire [103:0] operandBShift;
+     reg [103:0] operandAShift;
+     reg [103:0] operandBShift;
      wire [104:0] tempRes;
      
 
@@ -177,46 +179,83 @@ module mpadder(
      wire [103:0] operandA; 
      wire [103:0] operandB;
 
-      assign operandA = (showFluffyPonies == 4'b0) ? c_regb[105:2] : 
-     (showFluffyPonies == 4'd1) ? c_regb[209:106] :
-     (showFluffyPonies == 4'd2) ? c_regb[313:210] : 
-     (showFluffyPonies == 4'd3) ? c_regb[417:314] : 
-     c_regb[517:418];
-//     (showFluffyPonies == 4'd4) ? C2b[513:412]:
-//     103'b0; 
+//      assign operandA = (showFluffyPonies == 4'b0) ? c_regb[105:2] : 
+//     (showFluffyPonies == 4'd1) ? c_regb[209:106] :
+//     (showFluffyPonies == 4'd2) ? c_regb[313:210] : 
+//     (showFluffyPonies == 4'd3) ? c_regb[417:314] : 
+//     c_regb[517:418];
+
      
      
-      assign operandB = (showFluffyPonies == 4'b0) ? c_regc[105:2] : 
-      (showFluffyPonies == 4'd1) ? c_regc[209:106] : 
-      (showFluffyPonies == 4'd2) ? c_regc[313:210] : 
-      (showFluffyPonies == 4'd3) ? c_regc[417:314] : 
-      c_regc[518:418];
-//      (showFluffyPonies == 4'd4) ? C2c[514:412]:
-//       103'b0; 
+//      assign operandB = (showFluffyPonies == 4'b0) ? c_regc[105:2] : 
+//      (showFluffyPonies == 4'd1) ? c_regc[209:106] : 
+//      (showFluffyPonies == 4'd2) ? c_regc[313:210] : 
+//      (showFluffyPonies == 4'd3) ? c_regc[417:314] : 
+//      c_regc[518:418];
+
+    wire [3:0] subtractFluffyPonies;
+    assign subtractFluffyPonies = showFluffyPonies +   (4'b0101 & {subtract, subtract, subtract, subtract});
+    
+    wire [515:0] resultShiftedThree;
+    wire [514:0] subtractionShiftedThree;
+
+     always @(*) 
+     begin
+        case(subtractFluffyPonies)
+            4'b0000 : operandAShift = c_regb[105:2];
+            4'b0001 : operandAShift = c_regb[209:106];
+            4'b0010 : operandAShift = c_regb[313:210];
+            4'b0011 : operandAShift = c_regb[417:314];
+            4'b0100 : operandAShift = c_regb[517:418];
+            4'b0101 : operandAShift = resultShiftedThree[103:0];
+            4'b0110 : operandAShift = resultShiftedThree[207:104];
+            4'b0111 : operandAShift = resultShiftedThree[311:208];
+            4'b1000 : operandAShift = resultShiftedThree[415:312];
+            default : operandAShift = resultShiftedThree[514:416];
+            
+        endcase
+     end
+     
+     always @(*) 
+     begin
+        case(subtractFluffyPonies)
+            4'b0000 : operandBShift = c_regc[105:2];
+            4'b0001 : operandBShift = c_regc[209:106];
+            4'b0010 : operandBShift = c_regc[313:210];
+            4'b0011 : operandBShift = c_regc[417:314];
+            4'b0100 : operandBShift = c_regc[518:418];
+            4'b0101 : operandBShift = subtractionShiftedThree[103:0];
+            4'b0110 : operandBShift = subtractionShiftedThree[207:104];
+            4'b0111 : operandBShift = subtractionShiftedThree[311:208];
+            4'b1000 : operandBShift = subtractionShiftedThree[415:312];
+            default : operandBShift = subtractionShiftedThree[514:416];
+            
+        endcase
+     end
+
       
-     wire [515:0] resultShiftedThree;
-     wire [514:0] subtractionShiftedThree;
+
      
      assign resultShiftedThree =  {result, 3'b0}; //so don't have to multiplex for subtraction
      assign subtractionShiftedThree = {subtraction, 3'b111};// this way we can simply load it into the same circuit
      // we used for calculating the final result
      // The reason we shift subtraction with 3 ones is because of LSB, which we want to carry
 
-     assign operandAShift = (subtract) ? (
-     (showFluffyPonies == 4'd0) ? resultShiftedThree[103:0] :
-     (showFluffyPonies == 4'd1) ? resultShiftedThree[207:104] :
-     (showFluffyPonies == 4'd2) ? resultShiftedThree[311:208] :
-     (showFluffyPonies == 4'd3) ? resultShiftedThree[415:312] :
-     {5'b0, resultShiftedThree[514:416]} //not 515, because that goes into upper bits
-     ): operandA;                                                                                                                                                                                                                                                                                                                                                                                             
+//     assign operandAShift = (subtract) ? (
+//     (showFluffyPonies == 4'd0) ? resultShiftedThree[103:0] :
+//     (showFluffyPonies == 4'd1) ? resultShiftedThree[207:104] :
+//     (showFluffyPonies == 4'd2) ? resultShiftedThree[311:208] :
+//     (showFluffyPonies == 4'd3) ? resultShiftedThree[415:312] :
+//     {5'b0, resultShiftedThree[514:416]} //not 515, because that goes into upper bits
+//     ): operandA;                                                                                                                                                                                                                                                                                                                                                                                             
 
-     assign operandBShift = (subtract) ? (
-     (showFluffyPonies == 4'd0) ? subtractionShiftedThree[103:0] :
-     (showFluffyPonies == 4'd1) ? subtractionShiftedThree[207:104] :
-     (showFluffyPonies == 4'd2) ? subtractionShiftedThree[311:208] :
-     (showFluffyPonies == 4'd3) ? subtractionShiftedThree[415:312] :
-     {5'b0, subtractionShiftedThree[514:416]} 
-     ) : operandB;
+//     assign operandBShift = (subtract) ? (
+//     (showFluffyPonies == 4'd0) ? subtractionShiftedThree[103:0] :
+//     (showFluffyPonies == 4'd1) ? subtractionShiftedThree[207:104] :
+//     (showFluffyPonies == 4'd2) ? subtractionShiftedThree[311:208] :
+//     (showFluffyPonies == 4'd3) ? subtractionShiftedThree[415:312] :
+//     {5'b0, subtractionShiftedThree[514:416]} 
+//     ) : operandB;
      
 
      reg [103:0] reg_opAPipelineQ; // Yoshi's reg for reaching the timing
